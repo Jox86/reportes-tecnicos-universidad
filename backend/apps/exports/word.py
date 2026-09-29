@@ -12,7 +12,10 @@ AZUL = RGBColor(0x1E, 0x3A, 0x5F)
 
 def _sombrear_celda(celda, color_hex):
     tc_pr = celda._tc.get_or_add_tcPr()
-    shd = tc_pr.makeelement(qn("w:shd"), {qn("w:val"): "clear", qn("w:color"): "auto", qn("w:fill"): color_hex})
+    shd = tc_pr.makeelement(
+        qn("w:shd"),
+        {qn("w:val"): "clear", qn("w:color"): "auto", qn("w:fill"): color_hex},
+    )
     tc_pr.append(shd)
 
 
@@ -40,8 +43,7 @@ def generar_word_reporte(reporte) -> BytesIO:
     titulo = doc.add_heading(f"Reporte {reporte.codigo}", level=1)
     titulo.runs[0].font.color.rgb = AZUL
 
-    # Subtítulo con el tipo de tarea
-    sub = doc.add_paragraph(reporte.tipo_tarea.nombre)
+    sub = doc.add_paragraph(reporte.tipo_tarea.nombre if reporte.tipo_tarea else "")
     sub.runs[0].font.size = Pt(13)
     sub.runs[0].bold = True
 
@@ -53,13 +55,9 @@ def generar_word_reporte(reporte) -> BytesIO:
 
     _fila_meta(tabla, "Estado", reporte.get_estado_display())
     _fila_meta(tabla, "Prioridad", reporte.get_prioridad_display())
-    _fila_meta(tabla, "Área", f"{reporte.area.nombre} ({reporte.area.tipo_area.nombre})")
+    _fila_meta(tabla, "Área", f"{reporte.area.nombre} ({reporte.area.tipo_area.nombre})" if reporte.area else "—")
     _fila_meta(tabla, "Ubicación", reporte.ubicacion or "—")
-    _fila_meta(
-        tabla,
-        "Usuario afectado",
-        f"{reporte.usuario_nombre}" + (f" — {reporte.usuario_cargo}" if reporte.usuario_cargo else ""),
-    )
+    _fila_meta(tabla, "Usuario afectado", f"{reporte.usuario_nombre}" + (f" — {reporte.usuario_cargo}" if reporte.usuario_cargo else ""))
     _fila_meta(tabla, "Correo del usuario", reporte.usuario_correo)
     _fila_meta(
         tabla,
@@ -76,10 +74,12 @@ def generar_word_reporte(reporte) -> BytesIO:
         reporte.fecha_resolucion.strftime("%d/%m/%Y %H:%M") if reporte.fecha_resolucion else None,
     )
     _fila_meta(
-        tabla, "Tiempo de resolución", f"{reporte.tiempo_resolucion_horas} h" if reporte.tiempo_resolucion_horas else None
+        tabla,
+        "Tiempo de resolución",
+        f"{reporte.tiempo_resolucion_horas} h" if reporte.tiempo_resolucion_horas else None,
     )
 
-    # Equipos (ahora son múltiples)
+    # Equipos
     if reporte.equipos.exists():
         h = doc.add_heading("Equipos / activos", level=2)
         h.runs[0].font.color.rgb = AZUL
@@ -129,7 +129,7 @@ def generar_word_reporte(reporte) -> BytesIO:
 
     pie = doc.add_paragraph()
     pie.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = pie.add_run(f"Documento generado automáticamente por el Sistema de Reportes Técnicos.")
+    run = pie.add_run("Documento generado automáticamente por el Sistema de Reportes Técnicos.")
     run.font.size = Pt(8)
     run.font.color.rgb = RGBColor(0x6B, 0x72, 0x80)
 

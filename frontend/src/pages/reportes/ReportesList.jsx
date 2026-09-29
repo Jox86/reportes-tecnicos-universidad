@@ -123,7 +123,7 @@ export default function ReportesList() {
           <h1 className="titulo-pagina">Reportes</h1>
           <p className="subtitulo-pagina">Consulta, filtra y exporta los reportes técnicos.</p>
         </div>
-        <button className="btn btn--secundario" onClick={exportarExcel}>
+        <button className="btn-export-sm btn-export-sm--excel" onClick={exportarExcel}>
           <FileSpreadsheet size={16} /> Exportar a Excel
         </button>
       </div>

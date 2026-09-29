@@ -3,11 +3,11 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
-import { PRIORIDADES, TIPOS_TAREA } from "../../constants";
-import { Plus, Trash2, Search, User } from "lucide-react";
+import { PRIORIDADES } from "../../constants";
+import { Plus, Trash2, Search, AlertCircle } from "lucide-react";
 
 const VACIO = {
-  tipo_tarea: "activos_fijos",
+  tipo_tarea: "",        // ← ahora es el ID numérico del backend
   tipo_tarea_otro: "",
   descripcion: "",
   solucion: "",
@@ -29,16 +29,31 @@ export default function ReporteForm({ modoEdicion }) {
 
   const [datos, setDatos] = useState(VACIO);
   const [areas, setAreas] = useState([]);
+  const [tiposTarea, setTiposTarea] = useState([]);   // ← NUEVO
   const [tecnicos, setTecnicos] = useState([]);
   const [errores, setErrores] = useState({});
   const [guardando, setGuardando] = useState(false);
   const [buscandoUsuario, setBuscandoUsuario] = useState(false);
 
+  // Cargar catálogos
   useEffect(() => {
     api.get("/areas/").then(({ data }) => setAreas(data.results || data));
+    api.get("/tipos-tarea/").then(({ data }) => {
+      const lista = data.results || data;
+      setTiposTarea(lista);
+      // Si no hay tipo seleccionado aún, elige el primero
+      if (!datos.tipo_tarea && lista.length > 0) {
+        setDatos((d) => ({ ...d, tipo_tarea: lista[0].id }));
+      }
+    });
     if (esAdmin) {
       api.get("/tecnicos/").then(({ data }) => setTecnicos(data.results || data));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Cargar reporte en modo edición
+  useEffect(() => {
     if (modoEdicion && id) {
       api.get(`/reportes/${id}/`).then(({ data }) => {
         setDatos({
@@ -47,7 +62,9 @@ export default function ReporteForm({ modoEdicion }) {
           area: data.area,
           ubicacion: data.ubicacion || "",
           equipos: data.equipos || [],
+          tipo_tarea: data.tipo_tarea,          // ← ahora es el ID
           tipo_tarea_otro: data.tipo_tarea_otro || "",
+          tecnico_asignado: data.tecnico_asignado || "",
         });
       });
     }
@@ -109,9 +126,24 @@ export default function ReporteForm({ modoEdicion }) {
     e.preventDefault();
     setGuardando(true);
     setErrores({});
-    const payload = { ...datos };
-    if (!payload.tecnico_asignado) delete payload.tecnico_asignado;
-    if (payload.tipo_tarea !== "otros") delete payload.tipo_tarea_otro;
+
+    // Construir payload limpio
+    const payload = {
+      tipo_tarea: Number(datos.tipo_tarea),   // ← convertir a número
+      descripcion: datos.descripcion,
+      area: Number(datos.area),               // ← convertir a número
+      ubicacion: datos.ubicacion || "",
+      usuario_nombre: datos.usuario_nombre || "",
+      usuario_correo: datos.usuario_correo || "",
+      usuario_cargo: datos.usuario_cargo || "",
+      prioridad: datos.prioridad,
+      equipos: datos.equipos,
+    };
+
+    // Campos opcionales
+    if (datos.tipo_tarea_otro) payload.tipo_tarea_otro = datos.tipo_tarea_otro;
+    if (datos.tecnico_asignado) payload.tecnico_asignado = Number(datos.tecnico_asignado);
+    if (datos.solucion) payload.solucion = datos.solucion;
 
     try {
       if (modoEdicion) {
@@ -119,11 +151,18 @@ export default function ReporteForm({ modoEdicion }) {
         navigate(`/reportes/${id}`);
       } else {
         const { data } = await api.post("/reportes/", payload);
-        // Redirigir al detalle del reporte recién creado
         navigate(`/reportes/${data.id}`);
       }
     } catch (err) {
-      setErrores(err.response?.data || { general: "No se pudo guardar el reporte." });
+      // Mostrar el error del backend de forma clara
+      const data = err.response?.data;
+      if (data && typeof data === "object") {
+        setErrores(data);
+        // Log para depuración
+        console.error("Error del backend:", data);
+      } else {
+        setErrores({ general: "No se pudo guardar el reporte." });
+      }
     } finally {
       setGuardando(false);
     }
@@ -138,9 +177,14 @@ export default function ReporteForm({ modoEdicion }) {
         <div className="formulario__fila">
           <label>
             Tipo de tarea
-            <select value={datos.tipo_tarea} onChange={(e) => actualizar("tipo_tarea", e.target.value)}>
-              {TIPOS_TAREA.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
+            <select
+              value={datos.tipo_tarea}
+              onChange={(e) => actualizar("tipo_tarea", e.target.value)}
+              required
+            >
+              <option value="">Selecciona un tipo…</option>
+              {tiposTarea.map((t) => (
+                <option key={t.id} value={t.id}>{t.nombre}</option>
               ))}
             </select>
           </label>
@@ -154,23 +198,14 @@ export default function ReporteForm({ modoEdicion }) {
           </label>
         </div>
 
-        {datos.tipo_tarea === "otros" && (
-          <label>
-            Especifica el tipo de tarea
-            <input
-              type="text"
-              value={datos.tipo_tarea_otro}
-              onChange={(e) => actualizar("tipo_tarea_otro", e.target.value)}
-              placeholder="Ej. Mantenimiento preventivo"
-              required
-            />
-          </label>
-        )}
-
         <div className="formulario__fila">
           <label>
             Área
-            <select value={datos.area} onChange={(e) => actualizar("area", e.target.value)} required>
+            <select
+              value={datos.area}
+              onChange={(e) => actualizar("area", e.target.value)}
+              required
+            >
               <option value="">Selecciona un área…</option>
               {areas.map((a) => (
                 <option key={a.id} value={a.id}>{a.nombre} ({a.tipo_area_nombre})</option>
@@ -279,7 +314,23 @@ export default function ReporteForm({ modoEdicion }) {
           </label>
         )}
 
-        {errores.general && <div className="alerta alerta--error">{errores.general}</div>}
+        {/* Mostrar todos los errores del backend */}
+        {Object.keys(errores).length > 0 && (
+          <div className="alerta alerta--error">
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+              <AlertCircle size={16} />
+              <strong>Errores al guardar:</strong>
+            </div>
+            <ul style={{ margin: 0, paddingLeft: 18 }}>
+              {Object.entries(errores).map(([campo, mensajes]) => (
+                <li key={campo}>
+                  <strong>{campo}:</strong>{" "}
+                  {Array.isArray(mensajes) ? mensajes.join(", ") : String(mensajes)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="formulario__acciones">
           <button className="btn btn--primario" type="submit" disabled={guardando}>
@@ -289,9 +340,4 @@ export default function ReporteForm({ modoEdicion }) {
       </form>
     </div>
   );
-}
-
-function CampoError({ error }) {
-  if (!error) return null;
-  return <div className="alerta alerta--error">{Array.isArray(error) ? error.join(", ") : error}</div>;
 }

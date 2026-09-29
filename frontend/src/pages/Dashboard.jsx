@@ -81,11 +81,11 @@ export default function Dashboard() {
           <p className="subtitulo-pagina">Panorama general del sistema de reportes técnicos.</p>
         </div>
         <div className="dashboard-actions">
-          <button onClick={exportarExcel} className="btn btn--outline" title="Exportar a Excel">
-            <FileSpreadsheet size={18} /> Excel
+          <button onClick={exportarExcel} className="btn-export-sm btn-export-sm--excel" title="Exportar a Excel">
+            <FileSpreadsheet size={16} /> Excel
           </button>
-          <button onClick={exportarPDF} className="btn btn--outline" title="Exportar a PDF">
-            <FileDown size={18} /> PDF
+          <button onClick={exportarPDF} className="btn-export-sm btn-export-sm--pdf" title="Exportar a PDF">
+            <FileDown size={16} /> PDF
           </button>
         </div>
       </header>

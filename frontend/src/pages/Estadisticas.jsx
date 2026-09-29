@@ -82,10 +82,10 @@ export default function Estadisticas() {
           <p className="subtitulo-pagina">Indicadores y tendencias del sistema de reportes.</p>
         </div>
         <div className="dashboard-actions">
-          <button onClick={exportarExcel} className="btn btn--outline">
+          <button onClick={exportarExcel} className="btn-export-sm btn-export-sm--excel">
             <FileSpreadsheet size={16} /> Excel
           </button>
-          <button onClick={exportarPDF} className="btn btn--outline">
+          <button onClick={exportarPDF} className="btn-export-sm btn-export-sm--pdf">
             <FileDown size={16} /> PDF
           </button>
         </div>

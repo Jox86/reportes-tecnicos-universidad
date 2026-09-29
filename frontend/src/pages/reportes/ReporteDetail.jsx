@@ -5,7 +5,12 @@ import api from "../../api/client";
 import BadgeEstado from "../../components/BadgeEstado";
 import { useAuth } from "../../context/AuthContext";
 import { ESTADOS } from "../../constants";
-import { ArrowLeft, FileDown, FileSpreadsheet, Edit } from "lucide-react";
+import {
+  ArrowLeft, FileDown, FileSpreadsheet, Edit,
+  User, Building2, MapPin, Mail, Phone,
+  Calendar, Clock, Wrench, CheckCircle, AlertCircle,
+  Paperclip, Package, History, Send
+} from "lucide-react";
 
 export default function ReporteDetail() {
   const { id } = useParams();
@@ -31,7 +36,14 @@ export default function ReporteDetail() {
     });
   }
 
-  if (!reporte) return <p>Cargando reporte…</p>;
+  if (!reporte) {
+    return (
+      <div className="loading-realm">
+        <div className="loading-sword"></div>
+        <p>Cargando reporte...</p>
+      </div>
+    );
+  }
 
   const esAdmin = usuario.is_superuser || usuario.roles.includes("Administrador");
   const puedeGestionar =
@@ -64,12 +76,15 @@ export default function ReporteDetail() {
     fetch(`${base}/exportar/reportes/${id}/${formato}/`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((res) => res.blob())
+      .then((res) => {
+        if (!res.ok) throw new Error("Error exportando");
+        return res.blob();
+      })
       .then((blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${reporte.codigo}.${formato === "excel" ? "xlsx" : "pdf"}`;
+        a.download = `${reporte.codigo}.${formato === "excel" ? "xlsx" : formato === "word" ? "docx" : "pdf"}`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -79,23 +94,32 @@ export default function ReporteDetail() {
   }
 
   return (
-    <div>
-      <div className="encabezado-lista">
-        <div>
-          <button className="btn btn--fantasma" onClick={() => navigate(-1)} style={{ marginBottom: 8 }}>
-            <ArrowLeft size={16} /> Volver al listado
-          </button>
-          <h1 className="titulo-pagina">
-            {reporte.codigo} <BadgeEstado estado={reporte.estado} texto={reporte.estado_display} />
-          </h1>
-          <p className="subtitulo-pagina">{reporte.titulo}</p>
+    <div className="reporte-detalle">
+      {/* HEADER */}
+      <div className="reporte-header">
+        <button className="btn-atras" onClick={() => navigate(-1)}>
+          <ArrowLeft size={16} /> Volver
+        </button>
+
+        <div className="reporte-header__titulo">
+          <div>
+            <div className="reporte-codigo">{reporte.codigo}</div>
+            <h1 className="reporte-titulo">
+              {reporte.tipo_tarea_nombre || "Reporte Técnico"}
+            </h1>
+          </div>
+          <BadgeEstado estado={reporte.estado} texto={reporte.estado_display} />
         </div>
-        <div className="acciones-detalle">
-          <button className="btn btn--secundario" onClick={() => exportar("pdf")}>
+
+        <div className="reporte-header__acciones">
+          <button className="btn-export" onClick={() => exportar("pdf")} title="Exportar PDF">
             <FileDown size={16} /> PDF
           </button>
-          <button className="btn btn--secundario" onClick={() => exportar("excel")}>
+          <button className="btn-export" onClick={() => exportar("excel")} title="Exportar Excel">
             <FileSpreadsheet size={16} /> Excel
+          </button>
+          <button className="btn-export" onClick={() => exportar("word")} title="Exportar Word">
+            <FileDown size={16} /> Word
           </button>
           {puedeGestionar && (
             <Link className="btn btn--primario" to={`/reportes/${id}/editar`}>
@@ -105,72 +129,104 @@ export default function ReporteDetail() {
         </div>
       </div>
 
-      <div className="grid-detalle">
-        <div className="tarjeta">
-          <h2>Información general</h2>
-          <dl className="lista-datos">
-            <Dato etiqueta="Tipo de tarea" valor={reporte.tipo_tarea_display} />
-            <Dato etiqueta="Prioridad" valor={reporte.prioridad_display} />
-            <Dato etiqueta="Área" valor={reporte.area_nombre} />
-            <Dato etiqueta="Ubicación" valor={reporte.ubicacion_nombre || "—"} />
-            <Dato etiqueta="Usuario afectado" valor={reporte.usuario_nombre} />
-            <Dato etiqueta="Cargo / dependencia" valor={reporte.usuario_cargo || "—"} />
-            <Dato etiqueta="Correo del usuario" valor={reporte.usuario_correo || "—"} />
-            <Dato etiqueta="Técnico asignado" valor={reporte.tecnico_nombre || "Sin asignar"} />
-            <Dato etiqueta="Creado por" valor={reporte.creado_por_nombre} />
-            <Dato etiqueta="Fecha de creación" valor={new Date(reporte.fecha_creacion).toLocaleString("es-CO")} />
-            <Dato
-              etiqueta="Fecha de resolución"
-              valor={reporte.fecha_resolucion ? new Date(reporte.fecha_resolucion).toLocaleString("es-CO") : "—"}
-            />
-            <Dato
-              etiqueta="Tiempo de resolución"
-              valor={reporte.tiempo_resolucion_horas ? `${reporte.tiempo_resolucion_horas} h` : "—"}
-            />
-          </dl>
+      <div className="reporte-grid">
+        {/* COLUMNA IZQUIERDA */}
+        <div className="reporte-columna-principal">
+          {/* Info general */}
+          <div className="tarjeta-medieval">
+            <div className="tarjeta-medieval__header">
+              <Wrench size={18} />
+              <h3>Información General</h3>
+            </div>
+            <dl className="lista-datos-medieval">
+              <DatoMedieval icono={<Package size={16} />} etiqueta="Tipo de tarea" valor={reporte.tipo_tarea_nombre} />
+              <DatoMedieval icono={<AlertCircle size={16} />} etiqueta="Prioridad" valor={reporte.prioridad_display} />
+              <DatoMedieval icono={<Building2 size={16} />} etiqueta="Área" valor={reporte.area_nombre} />
+              <DatoMedieval icono={<MapPin size={16} />} etiqueta="Ubicación" valor={reporte.ubicacion || "—"} />
+              <DatoMedieval icono={<User size={16} />} etiqueta="Usuario afectado" valor={reporte.usuario_nombre || "—"} />
+              <DatoMedieval icono={<User size={16} />} etiqueta="Cargo" valor={reporte.usuario_cargo || "—"} />
+              <DatoMedieval icono={<Mail size={16} />} etiqueta="Correo" valor={reporte.usuario_correo || "—"} />
+              <DatoMedieval icono={<Wrench size={16} />} etiqueta="Técnico asignado" valor={reporte.tecnico_nombre || "Sin asignar"} />
+              <DatoMedieval icono={<User size={16} />} etiqueta="Creado por" valor={reporte.creado_por_nombre} />
+              <DatoMedieval icono={<Calendar size={16} />} etiqueta="Fecha de creación" valor={new Date(reporte.fecha_creacion).toLocaleString("es-CO")} />
+              <DatoMedieval icono={<CheckCircle size={16} />} etiqueta="Fecha de resolución" valor={reporte.fecha_resolucion ? new Date(reporte.fecha_resolucion).toLocaleString("es-CO") : "—"} />
+              <DatoMedieval icono={<Clock size={16} />} etiqueta="Tiempo de resolución" valor={reporte.tiempo_resolucion_horas ? `${reporte.tiempo_resolucion_horas} h` : "—"} />
+            </dl>
+          </div>
 
+          {/* Equipos */}
           {reporte.equipos && reporte.equipos.length > 0 && (
-            <>
-              <h3>Equipos / activos</h3>
-              {reporte.equipos.map((eq, idx) => (
-                <dl className="lista-datos" key={idx} style={{ borderBottom: "1px solid #eee", paddingBottom: 8, marginBottom: 8 }}>
-                  <Dato etiqueta={`Equipo #${idx + 1} - Código`} valor={eq.codigo_activo || "—"} />
-                  <Dato etiqueta="Marca" valor={eq.marca || "—"} />
-                  <Dato etiqueta="Modelo" valor={eq.modelo || "—"} />
-                  <Dato etiqueta="N.º de serie" valor={eq.serie || "—"} />
-                </dl>
-              ))}
-            </>
+            <div className="tarjeta-medieval">
+              <div className="tarjeta-medieval__header">
+                <Package size={18} />
+                <h3>Equipos / Activos ({reporte.equipos.length})</h3>
+              </div>
+              <div className="equipos-lista">
+                {reporte.equipos.map((eq, idx) => (
+                  <div key={idx} className="equipo-item">
+                    <div className="equipo-item__numero">#{idx + 1}</div>
+                    <div className="equipo-item__datos">
+                      <span><strong>Código:</strong> {eq.codigo_activo || "—"}</span>
+                      <span><strong>Marca:</strong> {eq.marca || "—"}</span>
+                      <span><strong>Modelo:</strong> {eq.modelo || "—"}</span>
+                      <span><strong>Serie:</strong> {eq.serie || "—"}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
-          <h3>Descripción</h3>
-          <p className="texto-parrafo">{reporte.descripcion}</p>
+          {/* Descripción */}
+          <div className="tarjeta-medieval">
+            <div className="tarjeta-medieval__header">
+              <AlertCircle size={18} />
+              <h3>Descripción del Problema</h3>
+            </div>
+            <p className="texto-parrafo-medieval">{reporte.descripcion}</p>
+          </div>
 
-          <h3>Solución / notas técnicas</h3>
-          <p className="texto-parrafo">{reporte.solucion || "Sin registrar aún."}</p>
+          {/* Solución */}
+          <div className="tarjeta-medieval tarjeta-medieval--solucion">
+            <div className="tarjeta-medieval__header">
+              <CheckCircle size={18} />
+              <h3>Solución / Notas Técnicas</h3>
+            </div>
+            <p className="texto-parrafo-medieval">
+              {reporte.solucion || "Sin registrar aún."}
+            </p>
+          </div>
 
           {/* Archivos adjuntos */}
           {reporte.archivos && reporte.archivos.length > 0 && (
-            <>
-              <h3>Archivos adjuntos</h3>
-              <ul>
+            <div className="tarjeta-medieval">
+              <div className="tarjeta-medieval__header">
+                <Paperclip size={18} />
+                <h3>Archivos Adjuntos ({reporte.archivos.length})</h3>
+              </div>
+              <ul className="archivos-lista">
                 {reporte.archivos.map((archivo) => (
                   <li key={archivo.id}>
                     <a href={archivo.url} target="_blank" rel="noopener noreferrer">
-                      {archivo.nombre}
+                      <Paperclip size={14} /> {archivo.nombre}
                     </a>
                   </li>
                 ))}
               </ul>
-            </>
+            </div>
           )}
         </div>
 
-        <div>
+        {/* COLUMNA DERECHA */}
+        <div className="reporte-columna-lateral">
+          {/* Cambiar estado */}
           {puedeGestionar && (
-            <div className="tarjeta">
-              <h2>Cambiar estado</h2>
-              <form onSubmit={cambiarEstado} className="formulario">
+            <div className="tarjeta-medieval">
+              <div className="tarjeta-medieval__header">
+                <Send size={18} />
+                <h3>Cambiar Estado</h3>
+              </div>
+              <form onSubmit={cambiarEstado} className="formulario-medieval">
                 <label>
                   Nuevo estado
                   <select value={nuevoEstado} onChange={(e) => setNuevoEstado(e.target.value)}>
@@ -188,31 +244,39 @@ export default function ReporteDetail() {
                   <input type="text" value={comentario} onChange={(e) => setComentario(e.target.value)} />
                 </label>
                 {error && <div className="alerta alerta--error">{error}</div>}
-                <button className="btn btn--primario" type="submit" disabled={guardando}>
-                  {guardando ? "Guardando…" : "Guardar cambio"}
+                <button className="btn-rune btn-rune--primario" type="submit" disabled={guardando}>
+                  {guardando ? "Guardando…" : "Guardar Cambio"}
                 </button>
               </form>
             </div>
           )}
 
-          <div className="tarjeta">
-            <h2>Historial</h2>
-            <ul className="linea-tiempo">
-              {reporte.historial.map((h) => (
-                <li key={h.id}>
-                  <div className="linea-tiempo__punto" />
-                  <div>
-                    <strong>
-                      {h.estado_anterior ? `${h.estado_anterior} → ` : ""}
-                      {h.estado_nuevo}
-                    </strong>
-                    <p>{h.comentario || "Sin comentario"}</p>
-                    <small>
-                      {h.usuario_nombre} · {new Date(h.fecha).toLocaleString("es-CO")}
-                    </small>
-                  </div>
-                </li>
-              ))}
+          {/* Historial */}
+          <div className="tarjeta-medieval">
+            <div className="tarjeta-medieval__header">
+              <History size={18} />
+              <h3>Historial de Cambios</h3>
+            </div>
+            <ul className="linea-tiempo-medieval">
+              {reporte.historial && reporte.historial.length > 0 ? (
+                reporte.historial.map((h) => (
+                  <li key={h.id}>
+                    <div className="linea-tiempo-medieval__punto" />
+                    <div className="linea-tiempo-medieval__contenido">
+                      <strong>
+                        {h.estado_anterior ? `${h.estado_anterior} → ` : ""}
+                        {h.estado_nuevo}
+                      </strong>
+                      <p>{h.comentario || "Sin comentario"}</p>
+                      <small>
+                        {h.usuario_nombre} · {new Date(h.fecha).toLocaleString("es-CO")}
+                      </small>
+                    </div>
+                  </li>
+                ))
+              ) : (
+                <li className="sin-datos-medieval">Sin cambios registrados aún.</li>
+              )}
             </ul>
           </div>
         </div>
@@ -221,11 +285,17 @@ export default function ReporteDetail() {
   );
 }
 
-function Dato({ etiqueta, valor }) {
+// ============================================================
+// Componente: Dato individual con icono
+// ============================================================
+function DatoMedieval({ icono, etiqueta, valor }) {
   return (
-    <div className="lista-datos__item">
-      <dt>{etiqueta}</dt>
-      <dd>{valor}</dd>
+    <div className="dato-medieval">
+      <div className="dato-medieval__icono">{icono}</div>
+      <div className="dato-medieval__texto">
+        <dt>{etiqueta}</dt>
+        <dd>{valor ?? "—"}</dd>
+      </div>
     </div>
   );
 }
