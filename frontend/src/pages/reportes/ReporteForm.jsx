@@ -7,7 +7,7 @@ import { PRIORIDADES } from "../../constants";
 import { Plus, Trash2, Search, AlertCircle } from "lucide-react";
 
 const VACIO = {
-  tipo_tarea: "",        // ← ahora es el ID numérico del backend
+  tipo_tarea: "",
   tipo_tarea_otro: "",
   descripcion: "",
   solucion: "",
@@ -29,30 +29,29 @@ export default function ReporteForm({ modoEdicion }) {
 
   const [datos, setDatos] = useState(VACIO);
   const [areas, setAreas] = useState([]);
-  const [tiposTarea, setTiposTarea] = useState([]);   // ← NUEVO
+  const [tiposTarea, setTiposTarea] = useState([]);
   const [tecnicos, setTecnicos] = useState([]);
   const [errores, setErrores] = useState({});
   const [guardando, setGuardando] = useState(false);
   const [buscandoUsuario, setBuscandoUsuario] = useState(false);
 
-  // Cargar catálogos
   useEffect(() => {
     api.get("/areas/").then(({ data }) => setAreas(data.results || data));
+
     api.get("/tipos-tarea/").then(({ data }) => {
       const lista = data.results || data;
       setTiposTarea(lista);
-      // Si no hay tipo seleccionado aún, elige el primero
       if (!datos.tipo_tarea && lista.length > 0) {
         setDatos((d) => ({ ...d, tipo_tarea: lista[0].id }));
       }
     });
+
     if (esAdmin) {
       api.get("/tecnicos/").then(({ data }) => setTecnicos(data.results || data));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Cargar reporte en modo edición
   useEffect(() => {
     if (modoEdicion && id) {
       api.get(`/reportes/${id}/`).then(({ data }) => {
@@ -62,7 +61,7 @@ export default function ReporteForm({ modoEdicion }) {
           area: data.area,
           ubicacion: data.ubicacion || "",
           equipos: data.equipos || [],
-          tipo_tarea: data.tipo_tarea,          // ← ahora es el ID
+          tipo_tarea: data.tipo_tarea,
           tipo_tarea_otro: data.tipo_tarea_otro || "",
           tecnico_asignado: data.tecnico_asignado || "",
         });
@@ -75,12 +74,17 @@ export default function ReporteForm({ modoEdicion }) {
     setDatos((d) => ({ ...d, [campo]: valor }));
   }
 
-  // --- Búsqueda LDAP ---
-  async function buscarUsuarioLDAP() {
-    if (!datos.usuario_nombre) return;
+  // Detectar si el tipo seleccionado es "Otro"
+  const tipoSeleccionado = tiposTarea.find((t) => t.id === Number(datos.tipo_tarea));
+  const esOtro = tipoSeleccionado?.codigo === "otro";
+
+  async function buscarUsuario() {
+    if (!datos.usuario_nombre || datos.usuario_nombre.length < 2) return;
     setBuscandoUsuario(true);
     try {
-      const { data } = await api.get("/ldap/buscar/", { params: { q: datos.usuario_nombre } });
+      const { data } = await api.get("/ldap/buscar/", {
+        params: { q: datos.usuario_nombre },
+      });
       if (data && data.length > 0) {
         const u = data[0];
         setDatos((d) => ({
@@ -90,16 +94,15 @@ export default function ReporteForm({ modoEdicion }) {
           usuario_cargo: u.cargo || "",
         }));
       } else {
-        alert("Usuario no encontrado en LDAP. Puedes llenar los datos manualmente.");
+        alert("Usuario no encontrado. Llena los datos manualmente.");
       }
-    } catch (err) {
-      alert("Error al buscar en LDAP. Llena los datos manualmente.");
+    } catch {
+      alert("Error al buscar usuario. Llena los datos manualmente.");
     } finally {
       setBuscandoUsuario(false);
     }
   }
 
-  // --- Manejo de equipos ---
   function agregarEquipo() {
     setDatos((d) => ({
       ...d,
@@ -127,11 +130,10 @@ export default function ReporteForm({ modoEdicion }) {
     setGuardando(true);
     setErrores({});
 
-    // Construir payload limpio
     const payload = {
-      tipo_tarea: Number(datos.tipo_tarea),   // ← convertir a número
+      tipo_tarea: Number(datos.tipo_tarea),
       descripcion: datos.descripcion,
-      area: Number(datos.area),               // ← convertir a número
+      area: Number(datos.area),
       ubicacion: datos.ubicacion || "",
       usuario_nombre: datos.usuario_nombre || "",
       usuario_correo: datos.usuario_correo || "",
@@ -140,8 +142,9 @@ export default function ReporteForm({ modoEdicion }) {
       equipos: datos.equipos,
     };
 
-    // Campos opcionales
-    if (datos.tipo_tarea_otro) payload.tipo_tarea_otro = datos.tipo_tarea_otro;
+    if (esOtro && datos.tipo_tarea_otro) {
+      payload.tipo_tarea_otro = datos.tipo_tarea_otro;
+    }
     if (datos.tecnico_asignado) payload.tecnico_asignado = Number(datos.tecnico_asignado);
     if (datos.solucion) payload.solucion = datos.solucion;
 
@@ -154,11 +157,9 @@ export default function ReporteForm({ modoEdicion }) {
         navigate(`/reportes/${data.id}`);
       }
     } catch (err) {
-      // Mostrar el error del backend de forma clara
       const data = err.response?.data;
       if (data && typeof data === "object") {
         setErrores(data);
-        // Log para depuración
         console.error("Error del backend:", data);
       } else {
         setErrores({ general: "No se pudo guardar el reporte." });
@@ -170,8 +171,12 @@ export default function ReporteForm({ modoEdicion }) {
 
   return (
     <div>
-      <h1 className="titulo-pagina">{modoEdicion ? "Editar reporte" : "Nuevo reporte"}</h1>
-      <p className="subtitulo-pagina">Completa los datos imprescindibles: área, ubicación y usuario.</p>
+      <h1 className="titulo-pagina">
+        {modoEdicion ? "Editar reporte" : "Nuevo reporte"}
+      </h1>
+      <p className="subtitulo-pagina">
+        Completa los datos imprescindibles: área, ubicación y usuario.
+      </p>
 
       <form className="tarjeta formulario formulario--ancho" onSubmit={onSubmit}>
         <div className="formulario__fila">
@@ -190,13 +195,30 @@ export default function ReporteForm({ modoEdicion }) {
           </label>
           <label>
             Prioridad
-            <select value={datos.prioridad} onChange={(e) => actualizar("prioridad", e.target.value)}>
+            <select
+              value={datos.prioridad}
+              onChange={(e) => actualizar("prioridad", e.target.value)}
+            >
               {PRIORIDADES.map((p) => (
                 <option key={p.value} value={p.value}>{p.label}</option>
               ))}
             </select>
           </label>
         </div>
+
+        {/* Campo dinámico para "Otro" */}
+        {esOtro && (
+          <label className="campo-otro">
+            Especifica el tipo de tarea
+            <input
+              type="text"
+              value={datos.tipo_tarea_otro}
+              onChange={(e) => actualizar("tipo_tarea_otro", e.target.value)}
+              placeholder="Ej. Mantenimiento de aire acondicionado"
+              required
+            />
+          </label>
+        )}
 
         <div className="formulario__fila">
           <label>
@@ -208,7 +230,9 @@ export default function ReporteForm({ modoEdicion }) {
             >
               <option value="">Selecciona un área…</option>
               {areas.map((a) => (
-                <option key={a.id} value={a.id}>{a.nombre} ({a.tipo_area_nombre})</option>
+                <option key={a.id} value={a.id}>
+                  {a.nombre} ({a.tipo_area_nombre})
+                </option>
               ))}
             </select>
           </label>
@@ -226,7 +250,7 @@ export default function ReporteForm({ modoEdicion }) {
         <h3>Usuario afectado (opcional)</h3>
         <div className="formulario__fila">
           <label>
-            Nombre o usuario LDAP
+            Nombre o usuario
             <div style={{ display: "flex", gap: 8 }}>
               <input
                 type="text"
@@ -234,7 +258,12 @@ export default function ReporteForm({ modoEdicion }) {
                 onChange={(e) => actualizar("usuario_nombre", e.target.value)}
                 placeholder="Ej. juan.perez"
               />
-              <button type="button" className="btn btn--secundario" onClick={buscarUsuarioLDAP} disabled={buscandoUsuario}>
+              <button
+                type="button"
+                className="btn btn--secundario"
+                onClick={buscarUsuario}
+                disabled={buscandoUsuario}
+              >
                 <Search size={16} /> {buscandoUsuario ? "..." : "Buscar"}
               </button>
             </div>
@@ -259,24 +288,54 @@ export default function ReporteForm({ modoEdicion }) {
 
         <h3>Equipos / activos</h3>
         {datos.equipos.map((eq, idx) => (
-          <div key={idx} className="formulario__fila" style={{ border: "1px solid #eee", padding: 10, borderRadius: 8, marginBottom: 8 }}>
+          <div
+            key={idx}
+            className="formulario__fila"
+            style={{
+              border: "1px solid #eee",
+              padding: 10,
+              borderRadius: 8,
+              marginBottom: 8,
+            }}
+          >
             <label>
               Código de activo
-              <input type="text" value={eq.codigo_activo} onChange={(e) => actualizarEquipo(idx, "codigo_activo", e.target.value)} />
+              <input
+                type="text"
+                value={eq.codigo_activo}
+                onChange={(e) => actualizarEquipo(idx, "codigo_activo", e.target.value)}
+              />
             </label>
             <label>
               Marca
-              <input type="text" value={eq.marca} onChange={(e) => actualizarEquipo(idx, "marca", e.target.value)} />
+              <input
+                type="text"
+                value={eq.marca}
+                onChange={(e) => actualizarEquipo(idx, "marca", e.target.value)}
+              />
             </label>
             <label>
               Modelo
-              <input type="text" value={eq.modelo} onChange={(e) => actualizarEquipo(idx, "modelo", e.target.value)} />
+              <input
+                type="text"
+                value={eq.modelo}
+                onChange={(e) => actualizarEquipo(idx, "modelo", e.target.value)}
+              />
             </label>
             <label>
               N.º de serie
-              <input type="text" value={eq.serie} onChange={(e) => actualizarEquipo(idx, "serie", e.target.value)} />
+              <input
+                type="text"
+                value={eq.serie}
+                onChange={(e) => actualizarEquipo(idx, "serie", e.target.value)}
+              />
             </label>
-            <button type="button" className="btn btn--peligro" onClick={() => eliminarEquipo(idx)} style={{ alignSelf: "end" }}>
+            <button
+              type="button"
+              className="btn btn--peligro"
+              onClick={() => eliminarEquipo(idx)}
+              style={{ alignSelf: "end" }}
+            >
               <Trash2 size={16} />
             </button>
           </div>
@@ -298,14 +357,21 @@ export default function ReporteForm({ modoEdicion }) {
         {modoEdicion && (
           <label>
             Solución / notas técnicas
-            <textarea rows={3} value={datos.solucion} onChange={(e) => actualizar("solucion", e.target.value)} />
+            <textarea
+              rows={3}
+              value={datos.solucion}
+              onChange={(e) => actualizar("solucion", e.target.value)}
+            />
           </label>
         )}
 
         {esAdmin && (
           <label>
             Técnico asignado
-            <select value={datos.tecnico_asignado} onChange={(e) => actualizar("tecnico_asignado", e.target.value)}>
+            <select
+              value={datos.tecnico_asignado}
+              onChange={(e) => actualizar("tecnico_asignado", e.target.value)}
+            >
               <option value="">Sin asignar</option>
               {tecnicos.map((t) => (
                 <option key={t.id} value={t.id}>{t.nombre_completo}</option>
@@ -314,7 +380,6 @@ export default function ReporteForm({ modoEdicion }) {
           </label>
         )}
 
-        {/* Mostrar todos los errores del backend */}
         {Object.keys(errores).length > 0 && (
           <div className="alerta alerta--error">
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>

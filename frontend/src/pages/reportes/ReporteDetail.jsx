@@ -6,10 +6,10 @@ import BadgeEstado from "../../components/BadgeEstado";
 import { useAuth } from "../../context/AuthContext";
 import { ESTADOS } from "../../constants";
 import {
-  ArrowLeft, FileDown, FileSpreadsheet, Edit,
-  User, Building2, MapPin, Mail, Phone,
+  ArrowLeft, FileDown, FileSpreadsheet, FileText, Edit,
+  User, Building2, MapPin, Mail,
   Calendar, Clock, Wrench, CheckCircle, AlertCircle,
-  Paperclip, Package, History, Send
+  Package, History, Send,
 } from "lucide-react";
 
 export default function ReporteDetail() {
@@ -38,9 +38,9 @@ export default function ReporteDetail() {
 
   if (!reporte) {
     return (
-      <div className="loading-realm">
-        <div className="loading-sword"></div>
-        <p>Cargando reporte...</p>
+      <div className="pantalla-carga">
+        <div className="spinner"></div>
+        <p>Cargando reporte…</p>
       </div>
     );
   }
@@ -55,16 +55,32 @@ export default function ReporteDetail() {
     e.preventDefault();
     setGuardando(true);
     setError("");
+
+    // Construir payload limpio
+    const payload = {
+      estado: nuevoEstado,
+      comentario: comentario || "",
+    };
+    if (solucion.trim()) payload.solucion = solucion;
+
     try {
-      const { data } = await api.post(`/reportes/${id}/cambiar-estado/`, {
-        estado: nuevoEstado,
-        comentario,
-        solucion,
-      });
+      const { data } = await api.post(`/reportes/${id}/cambiar-estado/`, payload);
       setReporte(data);
       setComentario("");
     } catch (err) {
-      setError("No se pudo actualizar el estado. Verifica los datos.");
+      // Log detallado para diagnóstico
+      console.error("Error al cambiar estado:");
+      console.error("  Status:", err.response?.status);
+      console.error("  Data:", err.response?.data);
+      console.error("  Message:", err.message);
+
+      // Mensaje específico según el error
+      const detalle = err.response?.data?.detail
+        || err.response?.data?.error
+        || JSON.stringify(err.response?.data || {})
+        || "Error desconocido";
+
+      setError(`No se pudo actualizar: ${detalle}`);
     } finally {
       setGuardando(false);
     }
@@ -112,14 +128,14 @@ export default function ReporteDetail() {
         </div>
 
         <div className="reporte-header__acciones">
-          <button className="btn-export" onClick={() => exportar("pdf")} title="Exportar PDF">
+          <button className="btn-export btn-export--pdf" onClick={() => exportar("pdf")}>
             <FileDown size={16} /> PDF
           </button>
-          <button className="btn-export" onClick={() => exportar("excel")} title="Exportar Excel">
+          <button className="btn-export btn-export--excel" onClick={() => exportar("excel")}>
             <FileSpreadsheet size={16} /> Excel
           </button>
-          <button className="btn-export" onClick={() => exportar("word")} title="Exportar Word">
-            <FileDown size={16} /> Word
+          <button className="btn-export btn-export--word" onClick={() => exportar("word")}>
+            <FileText size={16} /> Word
           </button>
           {puedeGestionar && (
             <Link className="btn btn--primario" to={`/reportes/${id}/editar`}>
@@ -132,34 +148,30 @@ export default function ReporteDetail() {
       <div className="reporte-grid">
         {/* COLUMNA IZQUIERDA */}
         <div className="reporte-columna-principal">
-          {/* Info general */}
-          <div className="tarjeta-medieval">
-            <div className="tarjeta-medieval__header">
-              <Wrench size={18} />
-              <h3>Información General</h3>
+          <div className="tarjeta">
+            <div className="tarjeta__encabezado" style={{ marginBottom: "1rem" }}>
+              <h2><Wrench size={18} /> Información general</h2>
             </div>
-            <dl className="lista-datos-medieval">
-              <DatoMedieval icono={<Package size={16} />} etiqueta="Tipo de tarea" valor={reporte.tipo_tarea_nombre} />
-              <DatoMedieval icono={<AlertCircle size={16} />} etiqueta="Prioridad" valor={reporte.prioridad_display} />
-              <DatoMedieval icono={<Building2 size={16} />} etiqueta="Área" valor={reporte.area_nombre} />
-              <DatoMedieval icono={<MapPin size={16} />} etiqueta="Ubicación" valor={reporte.ubicacion || "—"} />
-              <DatoMedieval icono={<User size={16} />} etiqueta="Usuario afectado" valor={reporte.usuario_nombre || "—"} />
-              <DatoMedieval icono={<User size={16} />} etiqueta="Cargo" valor={reporte.usuario_cargo || "—"} />
-              <DatoMedieval icono={<Mail size={16} />} etiqueta="Correo" valor={reporte.usuario_correo || "—"} />
-              <DatoMedieval icono={<Wrench size={16} />} etiqueta="Técnico asignado" valor={reporte.tecnico_nombre || "Sin asignar"} />
-              <DatoMedieval icono={<User size={16} />} etiqueta="Creado por" valor={reporte.creado_por_nombre} />
-              <DatoMedieval icono={<Calendar size={16} />} etiqueta="Fecha de creación" valor={new Date(reporte.fecha_creacion).toLocaleString("es-CO")} />
-              <DatoMedieval icono={<CheckCircle size={16} />} etiqueta="Fecha de resolución" valor={reporte.fecha_resolucion ? new Date(reporte.fecha_resolucion).toLocaleString("es-CO") : "—"} />
-              <DatoMedieval icono={<Clock size={16} />} etiqueta="Tiempo de resolución" valor={reporte.tiempo_resolucion_horas ? `${reporte.tiempo_resolucion_horas} h` : "—"} />
+            <dl className="lista-datos">
+              <Dato icono={<Package size={16} />} etiqueta="Tipo de tarea" valor={reporte.tipo_tarea_nombre} />
+              <Dato icono={<AlertCircle size={16} />} etiqueta="Prioridad" valor={reporte.prioridad_display} />
+              <Dato icono={<Building2 size={16} />} etiqueta="Área" valor={reporte.area_nombre} />
+              <Dato icono={<MapPin size={16} />} etiqueta="Ubicación" valor={reporte.ubicacion || "—"} />
+              <Dato icono={<User size={16} />} etiqueta="Usuario afectado" valor={reporte.usuario_nombre || "—"} />
+              <Dato icono={<User size={16} />} etiqueta="Cargo" valor={reporte.usuario_cargo || "—"} />
+              <Dato icono={<Mail size={16} />} etiqueta="Correo" valor={reporte.usuario_correo || "—"} />
+              <Dato icono={<Wrench size={16} />} etiqueta="Técnico asignado" valor={reporte.tecnico_nombre || "Sin asignar"} />
+              <Dato icono={<User size={16} />} etiqueta="Creado por" valor={reporte.creado_por_nombre} />
+              <Dato icono={<Calendar size={16} />} etiqueta="Fecha de creación" valor={new Date(reporte.fecha_creacion).toLocaleString("es-CO")} />
+              <Dato icono={<CheckCircle size={16} />} etiqueta="Fecha de resolución" valor={reporte.fecha_resolucion ? new Date(reporte.fecha_resolucion).toLocaleString("es-CO") : "—"} />
+              <Dato icono={<Clock size={16} />} etiqueta="Tiempo de resolución" valor={reporte.tiempo_resolucion_horas ? `${reporte.tiempo_resolucion_horas} h` : "—"} />
             </dl>
           </div>
 
-          {/* Equipos */}
           {reporte.equipos && reporte.equipos.length > 0 && (
-            <div className="tarjeta-medieval">
-              <div className="tarjeta-medieval__header">
-                <Package size={18} />
-                <h3>Equipos / Activos ({reporte.equipos.length})</h3>
+            <div className="tarjeta">
+              <div className="tarjeta__encabezado" style={{ marginBottom: "1rem" }}>
+                <h2><Package size={18} /> Equipos / Activos ({reporte.equipos.length})</h2>
               </div>
               <div className="equipos-lista">
                 {reporte.equipos.map((eq, idx) => (
@@ -177,56 +189,31 @@ export default function ReporteDetail() {
             </div>
           )}
 
-          {/* Descripción */}
-          <div className="tarjeta-medieval">
-            <div className="tarjeta-medieval__header">
-              <AlertCircle size={18} />
-              <h3>Descripción del Problema</h3>
+          <div className="tarjeta">
+            <div className="tarjeta__encabezado" style={{ marginBottom: "1rem" }}>
+              <h2><AlertCircle size={18} /> Descripción del problema</h2>
             </div>
-            <p className="texto-parrafo-medieval">{reporte.descripcion}</p>
+            <p className="texto-parrafo">{reporte.descripcion}</p>
           </div>
 
-          {/* Solución */}
-          <div className="tarjeta-medieval tarjeta-medieval--solucion">
-            <div className="tarjeta-medieval__header">
-              <CheckCircle size={18} />
-              <h3>Solución / Notas Técnicas</h3>
+          <div className="tarjeta tarjeta--solucion">
+            <div className="tarjeta__encabezado" style={{ marginBottom: "1rem" }}>
+              <h2><CheckCircle size={18} /> Solución / Notas técnicas</h2>
             </div>
-            <p className="texto-parrafo-medieval">
+            <p className="texto-parrafo">
               {reporte.solucion || "Sin registrar aún."}
             </p>
           </div>
-
-          {/* Archivos adjuntos */}
-          {reporte.archivos && reporte.archivos.length > 0 && (
-            <div className="tarjeta-medieval">
-              <div className="tarjeta-medieval__header">
-                <Paperclip size={18} />
-                <h3>Archivos Adjuntos ({reporte.archivos.length})</h3>
-              </div>
-              <ul className="archivos-lista">
-                {reporte.archivos.map((archivo) => (
-                  <li key={archivo.id}>
-                    <a href={archivo.url} target="_blank" rel="noopener noreferrer">
-                      <Paperclip size={14} /> {archivo.nombre}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
 
         {/* COLUMNA DERECHA */}
         <div className="reporte-columna-lateral">
-          {/* Cambiar estado */}
           {puedeGestionar && (
-            <div className="tarjeta-medieval">
-              <div className="tarjeta-medieval__header">
-                <Send size={18} />
-                <h3>Cambiar Estado</h3>
+            <div className="tarjeta">
+              <div className="tarjeta__encabezado" style={{ marginBottom: "1rem" }}>
+                <h2><Send size={18} /> Cambiar estado</h2>
               </div>
-              <form onSubmit={cambiarEstado} className="formulario-medieval">
+              <form onSubmit={cambiarEstado} className="formulario">
                 <label>
                   Nuevo estado
                   <select value={nuevoEstado} onChange={(e) => setNuevoEstado(e.target.value)}>
@@ -244,25 +231,23 @@ export default function ReporteDetail() {
                   <input type="text" value={comentario} onChange={(e) => setComentario(e.target.value)} />
                 </label>
                 {error && <div className="alerta alerta--error">{error}</div>}
-                <button className="btn-rune btn-rune--primario" type="submit" disabled={guardando}>
-                  {guardando ? "Guardando…" : "Guardar Cambio"}
+                <button className="btn btn--primario btn--block" type="submit" disabled={guardando}>
+                  {guardando ? "Guardando…" : "Guardar cambio"}
                 </button>
               </form>
             </div>
           )}
 
-          {/* Historial */}
-          <div className="tarjeta-medieval">
-            <div className="tarjeta-medieval__header">
-              <History size={18} />
-              <h3>Historial de Cambios</h3>
+          <div className="tarjeta">
+            <div className="tarjeta__encabezado" style={{ marginBottom: "1rem" }}>
+              <h2><History size={18} /> Historial de cambios</h2>
             </div>
-            <ul className="linea-tiempo-medieval">
+            <ul className="linea-tiempo">
               {reporte.historial && reporte.historial.length > 0 ? (
                 reporte.historial.map((h) => (
                   <li key={h.id}>
-                    <div className="linea-tiempo-medieval__punto" />
-                    <div className="linea-tiempo-medieval__contenido">
+                    <div className="linea-tiempo__punto" />
+                    <div className="linea-tiempo__contenido">
                       <strong>
                         {h.estado_anterior ? `${h.estado_anterior} → ` : ""}
                         {h.estado_nuevo}
@@ -275,7 +260,7 @@ export default function ReporteDetail() {
                   </li>
                 ))
               ) : (
-                <li className="sin-datos-medieval">Sin cambios registrados aún.</li>
+                <li className="tabla__vacio">Sin cambios registrados aún.</li>
               )}
             </ul>
           </div>
@@ -285,14 +270,11 @@ export default function ReporteDetail() {
   );
 }
 
-// ============================================================
-// Componente: Dato individual con icono
-// ============================================================
-function DatoMedieval({ icono, etiqueta, valor }) {
+function Dato({ icono, etiqueta, valor }) {
   return (
-    <div className="dato-medieval">
-      <div className="dato-medieval__icono">{icono}</div>
-      <div className="dato-medieval__texto">
+    <div className="dato">
+      <div className="dato__icono">{icono}</div>
+      <div className="dato__texto">
         <dt>{etiqueta}</dt>
         <dd>{valor ?? "—"}</dd>
       </div>

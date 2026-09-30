@@ -7,6 +7,7 @@ import { useAuth } from "./context/AuthContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Estadisticas from "./pages/Estadisticas";
+import Ranking from "./pages/Ranking"; // ← NUEVA
 import ReportesList from "./pages/reportes/ReportesList";
 import ReporteDetail from "./pages/reportes/ReporteDetail";
 import ReporteForm from "./pages/reportes/ReporteForm";
@@ -57,7 +58,7 @@ export default function App() {
         />
         <Route path="reportes/:id" element={<ReporteDetail />} />
         <Route path="estadisticas" element={<Estadisticas />} />
-        {/* Catalogos eliminado */}
+        <Route path="ranking" element={<Ranking />} /> {/* ← NUEVA */}
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

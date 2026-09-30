@@ -44,7 +44,6 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
-// Roles actualizados (sin Director)
 export const ROLES = {
   ADMIN: "Administrador",
   AUDITOR: "Auditor",

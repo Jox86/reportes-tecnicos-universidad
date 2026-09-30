@@ -136,6 +136,14 @@ class ReporteViewSet(viewsets.ModelViewSet):
         comentario = request.data.get("comentario", "")
         solucion = request.data.get("solucion", "")
 
+        # Validar que el estado sea válido
+        estados_validos = [e[0] for e in Estado.choices]
+        if nuevo_estado not in estados_validos:
+            return Response(
+                {"error": f"Estado inválido: {nuevo_estado}. Válidos: {estados_validos}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         estado_anterior = reporte.estado
         reporte.estado = nuevo_estado
         if solucion:
@@ -153,10 +161,15 @@ class ReporteViewSet(viewsets.ModelViewSet):
             usuario=request.user,
         )
 
-        # Notificar por correo si el usuario dejó correo
+        # Notificar por correo (opcional, no debe romper el flujo)
         if reporte.usuario_correo and nuevo_estado in [Estado.RESUELTO, Estado.CERRADO]:
-            from .notificaciones import notificar_resolucion
-            notificar_resolucion(reporte)
+            try:
+                from .notificaciones import notificar_resolucion
+                notificar_resolucion(reporte)
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Error al enviar notificación para {reporte.codigo}: {e}")
 
         return Response(ReporteSerializer(reporte, context={"request": request}).data)
 
@@ -174,7 +187,28 @@ class ReporteViewSet(viewsets.ModelViewSet):
         )
         return Response(ArchivoReporteSerializer(obj, context={"request": request}).data)
 
-
+@action(detail=True, methods=["delete"], url_path=r"eliminar-archivo/(?P<archivo_id>\d+)")
+def eliminar_archivo(self, request, pk=None, archivo_id=None):
+    """Elimina un archivo adjunto de un reporte."""
+    reporte = self.get_object()
+    try:
+        archivo = reporte.archivos.get(id=archivo_id)
+        # Verificar permisos
+        es_admin = request.user.is_superuser or request.user.groups.filter(name="Administrador").exists()
+        if not es_admin and archivo.subido_por_id != request.user.id:
+            return Response(
+                {"error": "No tienes permiso para eliminar este archivo."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        archivo.archivo.delete(save=False)
+        archivo.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    except ArchivoReporte.DoesNotExist:
+        return Response(
+            {"error": "Archivo no encontrado."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    
 # ---------------------------------------------------------------------------
 # Búsqueda LDAP
 # ---------------------------------------------------------------------------
