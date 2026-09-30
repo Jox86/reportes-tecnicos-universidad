@@ -76,7 +76,6 @@ class ReportePermission(permissions.BasePermission):
 
 
 def reportes_visibles_para(user, queryset):
-    """Restringe el listado de reportes: los técnicos solo ven los propios/asignados."""
     if es_admin(user) or solo_lectura(user):
         return queryset
     if es_tecnico(user):

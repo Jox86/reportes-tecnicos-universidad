@@ -81,13 +81,23 @@ class ReporteViewSet(viewsets.ModelViewSet):
         return ReporteSerializer
 
     def perform_create(self, serializer):
-        serializer.save(creado_por=self.request.user)
+        reporte = serializer.save(creado_por=self.request.user)
+        # Notificar a admin y técnicos
+        try:
+            from .notificaciones import notificar_nuevo_reporte
+            notificar_nuevo_reporte(reporte)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Error notificando nuevo reporte: {e}")
 
     def perform_update(self, serializer):
-        """Registra en historial si cambia el estado."""
         instance = self.get_object()
         estado_anterior = instance.estado
+        tecnico_anterior = instance.tecnico_asignado_id
+
         reporte = serializer.save()
+
+        # Notificar cambio de estado
         if estado_anterior != reporte.estado:
             HistorialEstado.objects.create(
                 reporte=reporte,
@@ -101,114 +111,132 @@ class ReporteViewSet(viewsets.ModelViewSet):
                 reporte.fecha_resolucion = timezone.now()
                 reporte.save(update_fields=["fecha_resolucion"])
 
-    @action(detail=True, methods=["patch"], url_path="actualizar-rapido")
-    def actualizar_rapido(self, request, pk=None):
-        """Endpoint para edición inline desde la tabla de reportes."""
-        reporte = self.get_object()
-        estado_anterior = reporte.estado
-
-        if "estado" in request.data:
-            reporte.estado = request.data["estado"]
-            if reporte.estado in [Estado.RESUELTO, Estado.CERRADO] and not reporte.fecha_resolucion:
-                from django.utils import timezone
-                reporte.fecha_resolucion = timezone.now()
-            if estado_anterior != reporte.estado:
-                HistorialEstado.objects.create(
-                    reporte=reporte,
-                    estado_anterior=estado_anterior,
-                    estado_nuevo=reporte.estado,
-                    usuario=request.user,
-                    comentario="Cambio rápido desde listado",
-                )
-
-        if "tecnico_asignado" in request.data:
-            tecnico_id = request.data["tecnico_asignado"]
-            reporte.tecnico_asignado = User.objects.get(pk=tecnico_id) if tecnico_id else None
-
-        reporte.save()
-        return Response(ReporteSerializer(reporte, context={"request": request}).data)
-
-    @action(detail=True, methods=["post"], url_path="cambiar-estado")
-    def cambiar_estado(self, request, pk=None):
-        """Cambio de estado con comentario y solución."""
-        reporte = self.get_object()
-        nuevo_estado = request.data.get("estado")
-        comentario = request.data.get("comentario", "")
-        solucion = request.data.get("solucion", "")
-
-        # Validar que el estado sea válido
-        estados_validos = [e[0] for e in Estado.choices]
-        if nuevo_estado not in estados_validos:
-            return Response(
-                {"error": f"Estado inválido: {nuevo_estado}. Válidos: {estados_validos}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        estado_anterior = reporte.estado
-        reporte.estado = nuevo_estado
-        if solucion:
-            reporte.solucion = solucion
-        if nuevo_estado in [Estado.RESUELTO, Estado.CERRADO] and not reporte.fecha_resolucion:
-            from django.utils import timezone
-            reporte.fecha_resolucion = timezone.now()
-        reporte.save()
-
-        HistorialEstado.objects.create(
-            reporte=reporte,
-            estado_anterior=estado_anterior,
-            estado_nuevo=nuevo_estado,
-            comentario=comentario,
-            usuario=request.user,
-        )
-
-        # Notificar por correo (opcional, no debe romper el flujo)
-        if reporte.usuario_correo and nuevo_estado in [Estado.RESUELTO, Estado.CERRADO]:
             try:
                 from .notificaciones import notificar_resolucion
-                notificar_resolucion(reporte)
+                notificar_resolucion(reporte, estado_anterior)
             except Exception as e:
                 import logging
-                logger = logging.getLogger(__name__)
-                logger.warning(f"Error al enviar notificación para {reporte.codigo}: {e}")
+                logging.getLogger(__name__).warning(f"Error notificando cambio estado: {e}")
 
-        return Response(ReporteSerializer(reporte, context={"request": request}).data)
+        # Notificar asignación de técnico
+        if reporte.tecnico_asignado_id and reporte.tecnico_asignado_id != tecnico_anterior:
+            try:
+                from .notificaciones import notificar_asignacion
+                notificar_asignacion(reporte)
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"Error notificando asignación: {e}")
 
-    @action(detail=True, methods=["post"], url_path="subir-archivo")
-    def subir_archivo(self, request, pk=None):
-        reporte = self.get_object()
-        archivo = request.FILES.get("archivo")
-        if not archivo:
-            return Response({"error": "No se envió archivo"}, status=status.HTTP_400_BAD_REQUEST)
-        obj = ArchivoReporte.objects.create(
-            reporte=reporte,
-            archivo=archivo,
-            nombre=archivo.name,
-            subido_por=request.user,
-        )
-        return Response(ArchivoReporteSerializer(obj, context={"request": request}).data)
+        @action(detail=True, methods=["patch"], url_path="actualizar-rapido")
+        def actualizar_rapido(self, request, pk=None):
+            """Endpoint para edición inline desde la tabla de reportes."""
+            reporte = self.get_object()
+            estado_anterior = reporte.estado
 
-@action(detail=True, methods=["delete"], url_path=r"eliminar-archivo/(?P<archivo_id>\d+)")
-def eliminar_archivo(self, request, pk=None, archivo_id=None):
-    """Elimina un archivo adjunto de un reporte."""
-    reporte = self.get_object()
-    try:
-        archivo = reporte.archivos.get(id=archivo_id)
-        # Verificar permisos
-        es_admin = request.user.is_superuser or request.user.groups.filter(name="Administrador").exists()
-        if not es_admin and archivo.subido_por_id != request.user.id:
-            return Response(
-                {"error": "No tienes permiso para eliminar este archivo."},
-                status=status.HTTP_403_FORBIDDEN,
+            if "estado" in request.data:
+                reporte.estado = request.data["estado"]
+                if reporte.estado in [Estado.RESUELTO, Estado.CERRADO] and not reporte.fecha_resolucion:
+                    from django.utils import timezone
+                    reporte.fecha_resolucion = timezone.now()
+                if estado_anterior != reporte.estado:
+                    HistorialEstado.objects.create(
+                        reporte=reporte,
+                        estado_anterior=estado_anterior,
+                        estado_nuevo=reporte.estado,
+                        usuario=request.user,
+                        comentario="Cambio rápido desde listado",
+                    )
+
+            if "tecnico_asignado" in request.data:
+                tecnico_id = request.data["tecnico_asignado"]
+                reporte.tecnico_asignado = User.objects.get(pk=tecnico_id) if tecnico_id else None
+
+            reporte.save()
+            return Response(ReporteSerializer(reporte, context={"request": request}).data)
+
+        @action(detail=True, methods=["post"], url_path="cambiar-estado")
+        def cambiar_estado(self, request, pk=None):
+            reporte = self.get_object()
+            nuevo_estado = request.data.get("estado")
+            comentario = request.data.get("comentario", "")
+            solucion = request.data.get("solucion", "")
+
+            estados_validos = [e[0] for e in Estado.choices]
+            if nuevo_estado not in estados_validos:
+                return Response(
+                    {"error": f"Estado inválido: {nuevo_estado}"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            estado_anterior = reporte.estado
+            reporte.estado = nuevo_estado
+            if solucion:
+                reporte.solucion = solucion
+            if nuevo_estado in [Estado.RESUELTO, Estado.CERRADO] and not reporte.fecha_resolucion:
+                from django.utils import timezone
+                reporte.fecha_resolucion = timezone.now()
+            reporte.save()
+
+            HistorialEstado.objects.create(
+                reporte=reporte,
+                estado_anterior=estado_anterior,
+                estado_nuevo=nuevo_estado,
+                comentario=comentario,
+                usuario=request.user,
             )
-        archivo.archivo.delete(save=False)
-        archivo.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-    except ArchivoReporte.DoesNotExist:
-        return Response(
-            {"error": "Archivo no encontrado."},
-            status=status.HTTP_404_NOT_FOUND,
-        )
-    
+
+            # Notificar por correo e internamente (sin romper si falla)
+            if nuevo_estado != estado_anterior:
+                try:
+                    from .notificaciones import notificar_resolucion
+                    notificar_resolucion(reporte, estado_anterior)
+                except Exception as e:
+                    import logging
+                    logging.getLogger(__name__).warning(f"Error notificando: {e}")
+
+            return Response(ReporteSerializer(reporte, context={"request": request}).data)
+
+        @action(detail=True, methods=["post"], url_path="subir-archivo")
+        def subir_archivo(self, request, pk=None):
+            reporte = self.get_object()
+            archivo = request.FILES.get("archivo")
+            if not archivo:
+                return Response({"error": "No se envió archivo"}, status=status.HTTP_400_BAD_REQUEST)
+            obj = ArchivoReporte.objects.create(
+                reporte=reporte,
+                archivo=archivo,
+                nombre=archivo.name,
+                subido_por=request.user,
+            )
+            return Response(ArchivoReporteSerializer(obj, context={"request": request}).data)
+
+    @action(detail=True, methods=["delete"], url_path=r"eliminar-archivo/(?P<archivo_id>\d+)")
+    def eliminar_archivo(self, request, pk=None, archivo_id=None):
+        """Elimina un archivo adjunto de un reporte."""
+        reporte = self.get_object()
+        try:
+            archivo = reporte.archivos.get(id=archivo_id)
+            # Verificar permisos
+            es_admin = request.user.is_superuser or request.user.groups.filter(name="Administrador").exists()
+            if not es_admin and archivo.subido_por_id != request.user.id:
+                return Response(
+                    {"error": "No tienes permiso para eliminar este archivo."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            archivo.archivo.delete(save=False)
+            archivo.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except ArchivoReporte.DoesNotExist:
+            return Response(
+                {"error": "Archivo no encontrado."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        
+    def get_queryset(self):
+        qs = Reporte.objects.select_related(
+            "area", "tipo_tarea", "tecnico_asignado", "creado_por"
+        ).prefetch_related("equipos", "archivos", "historial")
+        return reportes_visibles_para(self.request.user, qs)
 # ---------------------------------------------------------------------------
 # Búsqueda LDAP
 # ---------------------------------------------------------------------------
@@ -263,3 +291,41 @@ class TecnicosViewSet(viewsets.ReadOnlyModelViewSet):
             for u in self.get_queryset()
         ]
         return Response(data)
+
+# ---------------------------------------------------------------------------
+# Notificaciones
+# ---------------------------------------------------------------------------
+from .serializers import NotificacionSerializer
+from .notificaciones_models import Notificacion
+
+
+class NotificacionesViewSet(viewsets.ReadOnlyModelViewSet):
+    """Notificaciones del usuario actual."""
+    serializer_class = NotificacionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Notificacion.objects.filter(usuario=self.request.user)
+
+    @action(detail=False, methods=["post"], url_path="marcar-leidas")
+    def marcar_leidas(self, request):
+        """Marca todas las notificaciones del usuario como leídas."""
+        actualizadas = self.get_queryset().filter(leida=False).update(leida=True)
+        return Response({"actualizadas": actualizadas})
+
+    @action(detail=True, methods=["post"], url_path="marcar-leida")
+    def marcar_leida(self, request, pk=None):
+        """Marca una notificación específica como leída."""
+        notif = self.get_object()
+        notif.leida = True
+        notif.save(update_fields=["leida"])
+        return Response({"ok": True})
+
+    @action(detail=False, methods=["get"], url_path="pendientes")
+    def pendientes(self, request):
+        """Devuelve el conteo y las notificaciones no leídas."""
+        qs = self.get_queryset().filter(leida=False)[:10]
+        return Response({
+            "total": self.get_queryset().filter(leida=False).count(),
+            "no_leidas": NotificacionSerializer(qs, many=True).data,
+        })

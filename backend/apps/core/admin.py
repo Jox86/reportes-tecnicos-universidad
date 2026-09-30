@@ -121,3 +121,14 @@ class HistorialEstadoAdmin(admin.ModelAdmin):
     list_display = ("reporte", "estado_anterior", "estado_nuevo", "usuario", "fecha")
     list_filter = ("estado_nuevo",)
     search_fields = ("reporte__codigo", "comentario")
+
+
+from .notificaciones_models import Notificacion
+
+
+@admin.register(Notificacion)
+class NotificacionAdmin(admin.ModelAdmin):
+    list_display = ("usuario", "tipo", "titulo", "leida", "fecha")
+    list_filter = ("tipo", "leida", "fecha")
+    search_fields = ("usuario__username", "titulo", "mensaje")
+    date_hierarchy = "fecha"

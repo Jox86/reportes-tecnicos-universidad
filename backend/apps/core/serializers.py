@@ -149,3 +149,32 @@ class ReporteListSerializer(serializers.ModelSerializer):
 
     def get_tecnico_nombre(self, obj):
         return obj.tecnico_nombre
+
+
+from .notificaciones_models import Notificacion
+
+
+class NotificacionSerializer(serializers.ModelSerializer):
+    reporte_codigo = serializers.CharField(source="reporte.codigo", read_only=True)
+    fecha_relativa = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Notificacion
+        fields = [
+            "id", "tipo", "titulo", "mensaje",
+            "reporte", "reporte_codigo",
+            "leida", "fecha", "fecha_relativa",
+        ]
+
+    def get_fecha_relativa(self, obj):
+        from django.utils import timezone
+        ahora = timezone.now()
+        delta = ahora - obj.fecha
+        segundos = delta.total_seconds()
+        if segundos < 60:
+            return "hace unos segundos"
+        if segundos < 3600:
+            return f"hace {int(segundos // 60)} min"
+        if segundos < 86400:
+            return f"hace {int(segundos // 3600)} h"
+        return f"hace {int(segundos // 86400)} días"
