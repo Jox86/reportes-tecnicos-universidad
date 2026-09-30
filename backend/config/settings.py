@@ -1,6 +1,7 @@
 """
 Configuración del Sistema de Reportes Técnicos.
 Pensado para desplegarse como app web dentro de la red interna de la universidad.
+Actualizado: 30/09/2026 - Fix PostgreSQL en Railway
 """
 from datetime import timedelta
 from pathlib import Path
