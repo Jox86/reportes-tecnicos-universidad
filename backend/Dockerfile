@@ -1,3 +1,6 @@
+# Dockerfile para el backend - Sistema de Reportes Técnicos
+# Actualizado: 30/09/2026
+
 # Usar una imagen oficial de Python ligera
 FROM python:3.13-slim
 
