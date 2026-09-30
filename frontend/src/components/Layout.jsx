@@ -1,7 +1,7 @@
 // src/components/Layout.jsx
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { LayoutDashboard, FileText, BarChart3, PlusCircle, LogOut } from "lucide-react";
+import { LayoutDashboard, FileText, BarChart3, PlusCircle, LogOut, StarCheckIcon, StarHalf, StarX, StarsIcon } from "lucide-react";
 
 export default function Layout() {
   const { usuario, logout } = useAuth();
@@ -28,6 +28,9 @@ export default function Layout() {
           </NavLink>
           <NavLink to="/estadisticas">
             <BarChart3 size={16} /> Estadísticas
+          </NavLink>
+          <NavLink to="/ranking">
+            <StarsIcon size={16} /> Ranking
           </NavLink>
           {puedeGestionar && (
             <NavLink to="/reportes/nuevo" className="app-nav__cta">

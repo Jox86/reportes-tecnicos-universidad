@@ -1,0 +1,89 @@
+🔵 Opción A: Crear usuarios de prueba y probar roles
+Por qué: Ahora mismo solo tienes el superusuario. Necesitas probar los 3 roles (Administrador, Técnico, Auditor) para validar que los permisos funcionan.
+
+Qué incluye:
+
+Crear usuarios de prueba (técnicos, auditores)
+
+Probar que cada rol ve solo lo que debe ver
+
+Validar que los permisos funcionan
+
+Tiempo: 15 min
+
+🟣 Opción B: Integrar subida de archivos adjuntos
+Por qué: El backend ya tiene el endpoint /api/reportes/{id}/subir-archivo/, pero el frontend no lo usa todavía.
+
+Qué incluye:
+
+Botón "Subir archivo" en ReporteDetail.jsx
+
+Mostrar lista de archivos adjuntos
+
+Permitir eliminar archivos
+
+Configurar almacenamiento de media en producción (Supabase Storage)
+
+Tiempo: 30 min
+
+🟢 Opción C: Configurar notificaciones por correo
+Por qué: El backend tiene notificaciones.py configurado, pero por defecto los correos se imprimen en consola. Si quieres que se envíen de verdad, hay que configurar SMTP.
+
+Qué incluye:
+
+Configurar SMTP en Railway (Gmail, Outlook, o el de la universidad)
+
+Probar notificación al crear un reporte
+
+Probar notificación al resolverlo
+
+Tiempo: 15 min
+
+🟡 Opción D: Desplegar el frontend en Vercel
+Por qué: Actualmente el frontend solo funciona en tu máquina local. Si quieres que sea accesible desde cualquier lugar (como el backend), hay que desplegarlo.
+
+Qué incluye:
+
+Desplegar en Vercel
+
+Configurar la variable VITE_API_URL
+
+Actualizar CORS en Railway
+
+Verificar el flujo completo desde internet
+
+Tiempo: 20 min
+
+🟠 Opción E: Configurar LDAP real
+Por qué: Actualmente solo funciona autenticación local (superusuario + usuarios creados manualmente). Para que los usuarios reales de la universidad puedan entrar con sus credenciales institucionales, hay que configurar LDAP.
+
+Qué incluye:
+
+Obtener los datos del servidor LDAP de la universidad
+
+Configurar variables en Railway
+
+Instalar python-ldap en el Dockerfile
+
+Probar login con usuario LDAP
+
+Tiempo: Variable (depende de los datos del LDAP)
+
+🔴 Opción F: Preparar el sistema para producción
+Por qué: Hay varias cosas pendientes para que el sistema sea robusto y seguro en producción.
+
+Qué incluye:
+
+DEBUG=False en Railway
+
+Configurar backups automáticos en Supabase
+
+Añadir monitoreo (Sentry, etc.)
+
+Configurar dominio personalizado (en lugar del .up.railway.app)
+
+Añadir robots.txt y security headers
+
+Documentar el sistema
+
+Tiempo: 1-2 horas

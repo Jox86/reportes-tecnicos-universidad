@@ -1,7 +1,0 @@
-# OPCIONAL: solo si vas a conectar con Active Directory / LDAP de la universidad.
-# Instálalo DESPUÉS de tener la app funcionando:  python -m pip install -r requirements-ldap.txt
-#
-# En Windows, "python-ldap" suele fallar al compilar. Si te pasa, usa un wheel
-# precompilado para tu versión de Python, o corre el backend en WSL/Linux
-# (sudo apt install libsasl2-dev libldap2-dev libssl-dev).
-django-auth-ldap>=5.1
