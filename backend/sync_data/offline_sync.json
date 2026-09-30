@@ -3,7 +3,7 @@
   "model": "core.tipoarea",
   "pk": 1,
   "fields": {
-    "nombre": "DirecciÛn",
+    "nombre": "Direcci√≥n",
     "descripcion": ""
   }
 },
@@ -11,8 +11,8 @@
   "model": "core.tipoarea",
   "pk": 2,
   "fields": {
-    "nombre": "AcadÈmica",
-    "descripcion": "¡reas relacionadas con docencia e investigaciÛn"
+    "nombre": "Acad√©mica",
+    "descripcion": "√Åreas relacionadas con docencia e investigaci√≥n"
   }
 },
 {
@@ -20,7 +20,7 @@
   "pk": 3,
   "fields": {
     "nombre": "Administrativa",
-    "descripcion": "¡reas administrativas y de gestiÛn"
+    "descripcion": "√Åreas administrativas y de gesti√≥n"
   }
 },
 {
@@ -28,7 +28,7 @@
   "pk": 4,
   "fields": {
     "nombre": "Servicios",
-    "descripcion": "¡reas de servicios generales"
+    "descripcion": "√Åreas de servicios generales"
   }
 },
 {
@@ -36,7 +36,7 @@
   "pk": 5,
   "fields": {
     "nombre": "TI",
-    "descripcion": "TecnologÌas de la informaciÛn"
+    "descripcion": "Tecnolog√≠as de la informaci√≥n"
   }
 },
 {
@@ -83,7 +83,7 @@
   "model": "core.area",
   "pk": 5,
   "fields": {
-    "nombre": "Registro AcadÈmico",
+    "nombre": "Registro Acad√©mico",
     "tipo_area": 2,
     "responsable": "",
     "activo": true
@@ -128,7 +128,7 @@
     "area": 2,
     "edificio": "Edificio A",
     "piso": "Piso 1",
-    "referencia": "SÛtano"
+    "referencia": "S√≥tano"
   }
 },
 {
@@ -158,7 +158,7 @@
   "pk": 1,
   "fields": {
     "codigo": "activos_fijos",
-    "nombre": "GestiÛn de activos fijos",
+    "nombre": "Gesti√≥n de activos fijos",
     "activo": true,
     "creado_por": null,
     "fecha_creacion": "2026-09-28T19:15:27.327Z"
@@ -169,7 +169,7 @@
   "pk": 2,
   "fields": {
     "codigo": "reparacion_hardware",
-    "nombre": "ReparaciÛn de hardware",
+    "nombre": "Reparaci√≥n de hardware",
     "activo": true,
     "creado_por": null,
     "fecha_creacion": "2026-09-28T19:15:27.343Z"
@@ -180,7 +180,7 @@
   "pk": 3,
   "fields": {
     "codigo": "actualizacion_sistema",
-    "nombre": "ActualizaciÛn de sistema",
+    "nombre": "Actualizaci√≥n de sistema",
     "activo": true,
     "creado_por": null,
     "fecha_creacion": "2026-09-28T19:15:27.355Z"
@@ -191,7 +191,7 @@
   "pk": 4,
   "fields": {
     "codigo": "recuperacion_cuentas",
-    "nombre": "RecuperaciÛn de cuentas",
+    "nombre": "Recuperaci√≥n de cuentas",
     "activo": true,
     "creado_por": null,
     "fecha_creacion": "2026-09-28T19:15:27.367Z"
@@ -224,7 +224,7 @@
   "pk": 7,
   "fields": {
     "codigo": "instalacion_software",
-    "nombre": "InstalaciÛn de software",
+    "nombre": "Instalaci√≥n de software",
     "activo": true,
     "creado_por": null,
     "fecha_creacion": "2026-09-28T19:15:27.397Z"
@@ -262,11 +262,11 @@
   "fields": {
     "codigo": "RPT-2026-0002",
     "tipo_tarea": 2,
-    "descripcion": "El computador de la sala de lectura no enciende. Se revisÛ el cable de poder y parece estar en buen estado, pero no responde al botÛn de encendido.",
-    "solucion": "Se reemplazÛ la fuente de poder. El equipo ya enciende correctamente.",
+    "descripcion": "El computador de la sala de lectura no enciende. Se revis√≥ el cable de poder y parece estar en buen estado, pero no responde al bot√≥n de encendido.",
+    "solucion": "Se reemplaz√≥ la fuente de poder. El equipo ya enciende correctamente.",
     "area": 4,
     "ubicacion": "Sala de Lectura - PC #5",
-    "usuario_nombre": "MarÌa LÛpez",
+    "usuario_nombre": "Mar√≠a L√≥pez",
     "usuario_correo": "maria.lopez@universidad.edu",
     "usuario_cargo": "Bibliotecaria",
     "prioridad": "alta",
@@ -288,11 +288,11 @@
   "fields": {
     "codigo": "RPT-2026-0003",
     "tipo_tarea": 6,
-    "descripcion": "No hay conexiÛn a internet en el laboratorio de redes. Los estudiantes no pueden acceder a los recursos en lÌnea.",
+    "descripcion": "No hay conexi√≥n a internet en el laboratorio de redes. Los estudiantes no pueden acceder a los recursos en l√≠nea.",
     "solucion": "",
     "area": 3,
     "ubicacion": "Laboratorio Redes - Switch principal",
-    "usuario_nombre": "Pedro S·nchez",
+    "usuario_nombre": "Pedro S√°nchez",
     "usuario_correo": "pedro.sanchez@universidad.edu",
     "usuario_cargo": "Docente",
     "prioridad": "critica",
@@ -314,10 +314,10 @@
   "fields": {
     "codigo": "RPT-2026-0004",
     "tipo_tarea": 7,
-    "descripcion": "Instalar Microsoft Office en los 10 computadores nuevos del laboratorio de cÛmputo.",
+    "descripcion": "Instalar Microsoft Office en los 10 computadores nuevos del laboratorio de c√≥mputo.",
     "solucion": "",
     "area": 2,
-    "ubicacion": "Laboratorio de CÛmputo",
+    "ubicacion": "Laboratorio de C√≥mputo",
     "usuario_nombre": "Laura Torres",
     "usuario_correo": "laura.torres@universidad.edu",
     "usuario_cargo": "Coordinadora",
@@ -339,7 +339,7 @@
     "codigo": "RPT-2026-0005",
     "tipo_tarea": 1,
     "descripcion": "Registrar 20 equipos nuevos en el inventario de activos fijos.",
-    "solucion": "Se registraron todos los equipos con sus respectivos cÛdigos de activo.",
+    "solucion": "Se registraron todos los equipos con sus respectivos c√≥digos de activo.",
     "area": 2,
     "ubicacion": "Oficina Sistemas",
     "usuario_nombre": "Carlos Ruiz",
@@ -364,11 +364,11 @@
   "fields": {
     "codigo": "RPT-2026-0006",
     "tipo_tarea": 2,
-    "descripcion": "El proyector del aula 302 no muestra imagen. Se probÛ con otro cable HDMI y sigue igual.",
+    "descripcion": "El proyector del aula 302 no muestra imagen. Se prob√≥ con otro cable HDMI y sigue igual.",
     "solucion": "",
     "area": 4,
     "ubicacion": "Aula 302",
-    "usuario_nombre": "Docente AnÛnimo",
+    "usuario_nombre": "Docente An√≥nimo",
     "usuario_correo": "",
     "usuario_cargo": "",
     "prioridad": "media",
