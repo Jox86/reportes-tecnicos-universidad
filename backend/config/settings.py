@@ -67,12 +67,28 @@ WSGI_APPLICATION = "config.wsgi.application"
 # ---------------------------------------------------------------------------
 # fallback a SQLite mientras desarrollas sin conexión
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Base de datos
+# ---------------------------------------------------------------------------
+import os
 import dj_database_url
 
-DATABASE_URL = config("DATABASE_URL", default="")
+# Leer la URL de BD:
+# 1. Primero de os.environ (Railway, Docker, producción)
+# 2. Luego de .env (desarrollo local con decouple)
+DATABASE_URL = os.environ.get("DATABASE_URL") or config("DATABASE_URL", default="")
+
+print(f"[DB CONFIG] DATABASE_URL {'detectada' if DATABASE_URL else 'NO detectada'}")
 
 if DATABASE_URL:
-    DATABASES = {"default": dj_database_url.config(default=DATABASE_URL)}
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+    print("[DB CONFIG] Usando PostgreSQL")
 else:
     DATABASES = {
         "default": {
@@ -80,6 +96,7 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+    print("[DB CONFIG] Usando SQLite")
     
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
