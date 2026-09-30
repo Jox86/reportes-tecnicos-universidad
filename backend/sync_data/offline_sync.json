@@ -1,0 +1,577 @@
+[
+{
+  "model": "core.tipoarea",
+  "pk": 1,
+  "fields": {
+    "nombre": "Dirección",
+    "descripcion": ""
+  }
+},
+{
+  "model": "core.tipoarea",
+  "pk": 2,
+  "fields": {
+    "nombre": "Académica",
+    "descripcion": "Áreas relacionadas con docencia e investigación"
+  }
+},
+{
+  "model": "core.tipoarea",
+  "pk": 3,
+  "fields": {
+    "nombre": "Administrativa",
+    "descripcion": "Áreas administrativas y de gestión"
+  }
+},
+{
+  "model": "core.tipoarea",
+  "pk": 4,
+  "fields": {
+    "nombre": "Servicios",
+    "descripcion": "Áreas de servicios generales"
+  }
+},
+{
+  "model": "core.tipoarea",
+  "pk": 5,
+  "fields": {
+    "nombre": "TI",
+    "descripcion": "Tecnologías de la información"
+  }
+},
+{
+  "model": "core.area",
+  "pk": 1,
+  "fields": {
+    "nombre": "DiD",
+    "tipo_area": 1,
+    "responsable": "Directora Ada",
+    "activo": true
+  }
+},
+{
+  "model": "core.area",
+  "pk": 2,
+  "fields": {
+    "nombre": "Sistemas",
+    "tipo_area": 5,
+    "responsable": "",
+    "activo": true
+  }
+},
+{
+  "model": "core.area",
+  "pk": 3,
+  "fields": {
+    "nombre": "Redes y Comunicaciones",
+    "tipo_area": 5,
+    "responsable": "",
+    "activo": true
+  }
+},
+{
+  "model": "core.area",
+  "pk": 4,
+  "fields": {
+    "nombre": "Biblioteca",
+    "tipo_area": 2,
+    "responsable": "",
+    "activo": true
+  }
+},
+{
+  "model": "core.area",
+  "pk": 5,
+  "fields": {
+    "nombre": "Registro Académico",
+    "tipo_area": 2,
+    "responsable": "",
+    "activo": true
+  }
+},
+{
+  "model": "core.area",
+  "pk": 6,
+  "fields": {
+    "nombre": "Recursos Humanos",
+    "tipo_area": 3,
+    "responsable": "",
+    "activo": true
+  }
+},
+{
+  "model": "core.area",
+  "pk": 7,
+  "fields": {
+    "nombre": "Contabilidad",
+    "tipo_area": 3,
+    "responsable": "",
+    "activo": true
+  }
+},
+{
+  "model": "core.ubicacion",
+  "pk": 1,
+  "fields": {
+    "nombre": "Oficina Sistemas",
+    "area": 2,
+    "edificio": "Edificio A",
+    "piso": "Piso 2",
+    "referencia": "Ala norte"
+  }
+},
+{
+  "model": "core.ubicacion",
+  "pk": 2,
+  "fields": {
+    "nombre": "Sala de Servidores",
+    "area": 2,
+    "edificio": "Edificio A",
+    "piso": "Piso 1",
+    "referencia": "Sótano"
+  }
+},
+{
+  "model": "core.ubicacion",
+  "pk": 3,
+  "fields": {
+    "nombre": "Laboratorio Redes",
+    "area": 3,
+    "edificio": "Edificio B",
+    "piso": "Piso 3",
+    "referencia": "Ala sur"
+  }
+},
+{
+  "model": "core.ubicacion",
+  "pk": 4,
+  "fields": {
+    "nombre": "Sala de Lectura",
+    "area": 4,
+    "edificio": "Edificio Central",
+    "piso": "Piso 1",
+    "referencia": "Entrada principal"
+  }
+},
+{
+  "model": "core.tipotarea",
+  "pk": 1,
+  "fields": {
+    "codigo": "activos_fijos",
+    "nombre": "Gestión de activos fijos",
+    "activo": true,
+    "creado_por": null,
+    "fecha_creacion": "2026-09-28T19:15:27.327Z"
+  }
+},
+{
+  "model": "core.tipotarea",
+  "pk": 2,
+  "fields": {
+    "codigo": "reparacion_hardware",
+    "nombre": "Reparación de hardware",
+    "activo": true,
+    "creado_por": null,
+    "fecha_creacion": "2026-09-28T19:15:27.343Z"
+  }
+},
+{
+  "model": "core.tipotarea",
+  "pk": 3,
+  "fields": {
+    "codigo": "actualizacion_sistema",
+    "nombre": "Actualización de sistema",
+    "activo": true,
+    "creado_por": null,
+    "fecha_creacion": "2026-09-28T19:15:27.355Z"
+  }
+},
+{
+  "model": "core.tipotarea",
+  "pk": 4,
+  "fields": {
+    "codigo": "recuperacion_cuentas",
+    "nombre": "Recuperación de cuentas",
+    "activo": true,
+    "creado_por": null,
+    "fecha_creacion": "2026-09-28T19:15:27.367Z"
+  }
+},
+{
+  "model": "core.tipotarea",
+  "pk": 5,
+  "fields": {
+    "codigo": "mantenimiento_preventivo",
+    "nombre": "Mantenimiento preventivo",
+    "activo": true,
+    "creado_por": null,
+    "fecha_creacion": "2026-09-28T19:15:27.377Z"
+  }
+},
+{
+  "model": "core.tipotarea",
+  "pk": 6,
+  "fields": {
+    "codigo": "soporte_red",
+    "nombre": "Soporte de red",
+    "activo": true,
+    "creado_por": null,
+    "fecha_creacion": "2026-09-28T19:15:27.386Z"
+  }
+},
+{
+  "model": "core.tipotarea",
+  "pk": 7,
+  "fields": {
+    "codigo": "instalacion_software",
+    "nombre": "Instalación de software",
+    "activo": true,
+    "creado_por": null,
+    "fecha_creacion": "2026-09-28T19:15:27.397Z"
+  }
+},
+{
+  "model": "core.reporte",
+  "pk": 1,
+  "fields": {
+    "codigo": "RPT-2026-0001",
+    "tipo_tarea": 3,
+    "descripcion": "jhgfd",
+    "solucion": "lkjhgf",
+    "area": 1,
+    "ubicacion": "",
+    "usuario_nombre": "",
+    "usuario_correo": "",
+    "usuario_cargo": "",
+    "prioridad": "media",
+    "estado": "pendiente",
+    "creado_por": [
+      "fox6"
+    ],
+    "tecnico_asignado": [
+      "tecnico2"
+    ],
+    "fecha_creacion": "2026-09-29T17:27:13.109Z",
+    "fecha_actualizacion": "2026-09-29T17:45:07.805Z",
+    "fecha_resolucion": null
+  }
+},
+{
+  "model": "core.reporte",
+  "pk": 2,
+  "fields": {
+    "codigo": "RPT-2026-0002",
+    "tipo_tarea": 2,
+    "descripcion": "El computador de la sala de lectura no enciende. Se revisó el cable de poder y parece estar en buen estado, pero no responde al botón de encendido.",
+    "solucion": "Se reemplazó la fuente de poder. El equipo ya enciende correctamente.",
+    "area": 4,
+    "ubicacion": "Sala de Lectura - PC #5",
+    "usuario_nombre": "María López",
+    "usuario_correo": "maria.lopez@universidad.edu",
+    "usuario_cargo": "Bibliotecaria",
+    "prioridad": "alta",
+    "estado": "resuelto",
+    "creado_por": [
+      "jfox6"
+    ],
+    "tecnico_asignado": [
+      "tecnico1"
+    ],
+    "fecha_creacion": "2026-09-30T20:34:55.738Z",
+    "fecha_actualizacion": "2026-09-30T20:34:55.738Z",
+    "fecha_resolucion": "2026-09-30T20:34:55.735Z"
+  }
+},
+{
+  "model": "core.reporte",
+  "pk": 3,
+  "fields": {
+    "codigo": "RPT-2026-0003",
+    "tipo_tarea": 6,
+    "descripcion": "No hay conexión a internet en el laboratorio de redes. Los estudiantes no pueden acceder a los recursos en línea.",
+    "solucion": "",
+    "area": 3,
+    "ubicacion": "Laboratorio Redes - Switch principal",
+    "usuario_nombre": "Pedro Sánchez",
+    "usuario_correo": "pedro.sanchez@universidad.edu",
+    "usuario_cargo": "Docente",
+    "prioridad": "critica",
+    "estado": "en_proceso",
+    "creado_por": [
+      "jfox6"
+    ],
+    "tecnico_asignado": [
+      "tecnico2"
+    ],
+    "fecha_creacion": "2026-09-30T20:34:55.786Z",
+    "fecha_actualizacion": "2026-09-30T20:34:55.786Z",
+    "fecha_resolucion": null
+  }
+},
+{
+  "model": "core.reporte",
+  "pk": 4,
+  "fields": {
+    "codigo": "RPT-2026-0004",
+    "tipo_tarea": 7,
+    "descripcion": "Instalar Microsoft Office en los 10 computadores nuevos del laboratorio de cómputo.",
+    "solucion": "",
+    "area": 2,
+    "ubicacion": "Laboratorio de Cómputo",
+    "usuario_nombre": "Laura Torres",
+    "usuario_correo": "laura.torres@universidad.edu",
+    "usuario_cargo": "Coordinadora",
+    "prioridad": "media",
+    "estado": "pendiente",
+    "creado_por": [
+      "jfox6"
+    ],
+    "tecnico_asignado": null,
+    "fecha_creacion": "2026-09-30T20:34:55.828Z",
+    "fecha_actualizacion": "2026-09-30T20:34:55.828Z",
+    "fecha_resolucion": null
+  }
+},
+{
+  "model": "core.reporte",
+  "pk": 5,
+  "fields": {
+    "codigo": "RPT-2026-0005",
+    "tipo_tarea": 1,
+    "descripcion": "Registrar 20 equipos nuevos en el inventario de activos fijos.",
+    "solucion": "Se registraron todos los equipos con sus respectivos códigos de activo.",
+    "area": 2,
+    "ubicacion": "Oficina Sistemas",
+    "usuario_nombre": "Carlos Ruiz",
+    "usuario_correo": "carlos.ruiz@universidad.edu",
+    "usuario_cargo": "Jefe de Sistemas",
+    "prioridad": "baja",
+    "estado": "cerrado",
+    "creado_por": [
+      "jfox6"
+    ],
+    "tecnico_asignado": [
+      "tecnico1"
+    ],
+    "fecha_creacion": "2026-09-30T20:34:55.877Z",
+    "fecha_actualizacion": "2026-09-30T20:34:55.877Z",
+    "fecha_resolucion": "2026-09-30T20:34:55.877Z"
+  }
+},
+{
+  "model": "core.reporte",
+  "pk": 6,
+  "fields": {
+    "codigo": "RPT-2026-0006",
+    "tipo_tarea": 2,
+    "descripcion": "El proyector del aula 302 no muestra imagen. Se probó con otro cable HDMI y sigue igual.",
+    "solucion": "",
+    "area": 4,
+    "ubicacion": "Aula 302",
+    "usuario_nombre": "Docente Anónimo",
+    "usuario_correo": "",
+    "usuario_cargo": "",
+    "prioridad": "media",
+    "estado": "pendiente",
+    "creado_por": [
+      "jfox6"
+    ],
+    "tecnico_asignado": null,
+    "fecha_creacion": "2026-09-30T20:34:55.909Z",
+    "fecha_actualizacion": "2026-09-30T20:34:55.909Z",
+    "fecha_resolucion": null
+  }
+},
+{
+  "model": "core.equiporeporte",
+  "pk": 1,
+  "fields": {
+    "reporte": 2,
+    "codigo_activo": "ACT-001",
+    "marca": "Dell",
+    "modelo": "OptiPlex 3080",
+    "serie": "SN-12345"
+  }
+},
+{
+  "model": "core.equiporeporte",
+  "pk": 2,
+  "fields": {
+    "reporte": 3,
+    "codigo_activo": "SW-001",
+    "marca": "Cisco",
+    "modelo": "Catalyst 2960",
+    "serie": "SW-98765"
+  }
+},
+{
+  "model": "core.equiporeporte",
+  "pk": 3,
+  "fields": {
+    "reporte": 4,
+    "codigo_activo": "PC-001",
+    "marca": "HP",
+    "modelo": "ProDesk 400",
+    "serie": "HP-00001"
+  }
+},
+{
+  "model": "core.equiporeporte",
+  "pk": 4,
+  "fields": {
+    "reporte": 4,
+    "codigo_activo": "PC-002",
+    "marca": "HP",
+    "modelo": "ProDesk 400",
+    "serie": "HP-00002"
+  }
+},
+{
+  "model": "core.equiporeporte",
+  "pk": 5,
+  "fields": {
+    "reporte": 4,
+    "codigo_activo": "PC-003",
+    "marca": "HP",
+    "modelo": "ProDesk 400",
+    "serie": "HP-00003"
+  }
+},
+{
+  "model": "core.equiporeporte",
+  "pk": 6,
+  "fields": {
+    "reporte": 6,
+    "codigo_activo": "PROY-001",
+    "marca": "Epson",
+    "modelo": "PowerLite X49",
+    "serie": "EP-X49-001"
+  }
+},
+{
+  "model": "core.historialestado",
+  "pk": 1,
+  "fields": {
+    "reporte": 1,
+    "estado_anterior": "pendiente",
+    "estado_nuevo": "pendiente",
+    "comentario": "",
+    "usuario": [
+      "fox6"
+    ],
+    "fecha": "2026-09-29T17:42:25.729Z"
+  }
+},
+{
+  "model": "core.historialestado",
+  "pk": 2,
+  "fields": {
+    "reporte": 2,
+    "estado_anterior": "",
+    "estado_nuevo": "pendiente",
+    "comentario": "Reporte creado",
+    "usuario": [
+      "jfox6"
+    ],
+    "fecha": "2026-09-30T20:34:55.761Z"
+  }
+},
+{
+  "model": "core.historialestado",
+  "pk": 3,
+  "fields": {
+    "reporte": 2,
+    "estado_anterior": "pendiente",
+    "estado_nuevo": "resuelto",
+    "comentario": "Cambio de estado",
+    "usuario": [
+      "tecnico1"
+    ],
+    "fecha": "2026-09-30T20:34:55.773Z"
+  }
+},
+{
+  "model": "core.historialestado",
+  "pk": 4,
+  "fields": {
+    "reporte": 3,
+    "estado_anterior": "",
+    "estado_nuevo": "pendiente",
+    "comentario": "Reporte creado",
+    "usuario": [
+      "jfox6"
+    ],
+    "fecha": "2026-09-30T20:34:55.806Z"
+  }
+},
+{
+  "model": "core.historialestado",
+  "pk": 5,
+  "fields": {
+    "reporte": 3,
+    "estado_anterior": "pendiente",
+    "estado_nuevo": "en_proceso",
+    "comentario": "Cambio de estado",
+    "usuario": [
+      "tecnico2"
+    ],
+    "fecha": "2026-09-30T20:34:55.816Z"
+  }
+},
+{
+  "model": "core.historialestado",
+  "pk": 6,
+  "fields": {
+    "reporte": 4,
+    "estado_anterior": "",
+    "estado_nuevo": "pendiente",
+    "comentario": "Reporte creado",
+    "usuario": [
+      "jfox6"
+    ],
+    "fecha": "2026-09-30T20:34:55.867Z"
+  }
+},
+{
+  "model": "core.historialestado",
+  "pk": 7,
+  "fields": {
+    "reporte": 5,
+    "estado_anterior": "",
+    "estado_nuevo": "pendiente",
+    "comentario": "Reporte creado",
+    "usuario": [
+      "jfox6"
+    ],
+    "fecha": "2026-09-30T20:34:55.887Z"
+  }
+},
+{
+  "model": "core.historialestado",
+  "pk": 8,
+  "fields": {
+    "reporte": 5,
+    "estado_anterior": "pendiente",
+    "estado_nuevo": "cerrado",
+    "comentario": "Cambio de estado",
+    "usuario": [
+      "tecnico1"
+    ],
+    "fecha": "2026-09-30T20:34:55.896Z"
+  }
+},
+{
+  "model": "core.historialestado",
+  "pk": 9,
+  "fields": {
+    "reporte": 6,
+    "estado_anterior": "",
+    "estado_nuevo": "pendiente",
+    "comentario": "Reporte creado",
+    "usuario": [
+      "jfox6"
+    ],
+    "fecha": "2026-09-30T20:34:55.927Z"
+  }
+}
+]
