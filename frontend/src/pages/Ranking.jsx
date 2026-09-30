@@ -1,17 +1,16 @@
 // src/pages/Ranking.jsx
 import { useEffect, useState } from "react";
-import { Trophy, Star, Award, TrendingUp, Clock, Medal } from "lucide-react";
+import {
+  Trophy,
+  Star,
+  TrendingUp,
+  Clock,
+  Medal,
+  User,
+  ShieldCheck,
+  LogIn,
+} from "lucide-react";
 import api from "../api/client";
-
-// Escala de estrellas según reportes resueltos
-function calcularEstrellas(resueltos) {
-  if (resueltos >= 20) return 5;
-  if (resueltos >= 15) return 4;
-  if (resueltos >= 10) return 3;
-  if (resueltos >= 5) return 2;
-  if (resueltos >= 1) return 1;
-  return 0;
-}
 
 const TITULOS = {
   5: "Maestro Técnico",
@@ -47,7 +46,8 @@ export default function Ranking() {
             <Trophy size={22} /> Ranking de Técnicos
           </h1>
           <p className="subtitulo-pagina">
-            Clasificación automática según reportes resueltos y tiempo de resolución.
+            Clasificación según reportes resueltos y tiempo de resolución.
+            Los técnicos sin reportes aparecen ordenados por su último inicio de sesión.
           </p>
         </div>
       </header>
@@ -56,24 +56,27 @@ export default function Ranking() {
         <p>Cargando ranking…</p>
       ) : ranking.length === 0 ? (
         <div className="tarjeta">
-          <p className="sin-datos">Aún no hay técnicos con reportes resueltos.</p>
+          <p className="sin-datos">Aún no hay técnicos registrados en el sistema.</p>
         </div>
       ) : (
         <div className="ranking-cards">
           {ranking.map((t, index) => {
-            const estrellas = calcularEstrellas(t.reportes_resueltos);
-            const esTop1 = index === 0;
+            const estrellas = t.estrellas ?? 0;
+            const esTop1 = index === 0 && t.reportes_resueltos > 0;
+            const sinReportes = t.reportes_resueltos === 0;
 
             return (
               <div
                 key={t.id}
-                className={`ranking-card ${esTop1 ? "ranking-card--top" : ""}`}
+                className={`ranking-card ${esTop1 ? "ranking-card--top" : ""} ${sinReportes ? "ranking-card--sin-datos" : ""}`}
               >
                 <div className="ranking-card__posicion">
                   {index === 0 && <Medal size={28} color="#f59e0b" />}
                   {index === 1 && <Medal size={28} color="#94a3b8" />}
                   {index === 2 && <Medal size={28} color="#a16207" />}
-                  {index > 2 && <span className="ranking-card__num">#{index + 1}</span>}
+                  {index > 2 && (
+                    <span className="ranking-card__num">#{index + 1}</span>
+                  )}
                 </div>
 
                 <div className="ranking-card__avatar">
@@ -81,10 +84,23 @@ export default function Ranking() {
                 </div>
 
                 <div className="ranking-card__info">
-                  <h3>{t.nombre}</h3>
-                  <span className="ranking-card__titulo">{TITULOS[estrellas]}</span>
+                  <h3>
+                    {t.nombre}
+                    {t.es_admin && (
+                      <span className="ranking-card__badge-admin" title="Administrador">
+                        <ShieldCheck size={12} />
+                      </span>
+                    )}
+                  </h3>
+                  <span className="ranking-card__titulo">
+                    {sinReportes ? "Sin reportes aún" : TITULOS[estrellas]}
+                  </span>
 
-                  <div className={`ranking-card__estrellas ${esTop1 && !yaAnimo ? "animar" : ""}`}>
+                  <div
+                    className={`ranking-card__estrellas ${
+                      esTop1 && !yaAnimo ? "animar" : ""
+                    }`}
+                  >
                     {[1, 2, 3, 4, 5].map((n) => (
                       <Star
                         key={n}
@@ -99,16 +115,31 @@ export default function Ranking() {
                 </div>
 
                 <div className="ranking-card__stats">
-                  <div className="stat">
-                    <TrendingUp size={16} />
-                    <span>{t.reportes_resueltos}</span>
-                    <small>resueltos</small>
-                  </div>
+                  {t.reportes_resueltos > 0 ? (
+                    <div className="stat">
+                      <TrendingUp size={16} />
+                      <span>{t.reportes_resueltos}</span>
+                      <small>resueltos</small>
+                    </div>
+                  ) : (
+                    <div className="stat stat--vacio">
+                      <User size={16} />
+                      <small>Sin asignaciones</small>
+                    </div>
+                  )}
+
                   {t.tiempo_promedio_horas != null && (
                     <div className="stat">
                       <Clock size={16} />
                       <span>{t.tiempo_promedio_horas}h</span>
                       <small>promedio</small>
+                    </div>
+                  )}
+
+                  {sinReportes && t.ultimo_login && (
+                    <div className="stat stat--login">
+                      <LogIn size={16} />
+                      <small>{formatearUltimoLogin(t.ultimo_login)}</small>
                     </div>
                   )}
                 </div>
@@ -119,4 +150,24 @@ export default function Ranking() {
       )}
     </div>
   );
+}
+
+// ============================================================
+// Utilidad: formatear fecha de último login
+// ============================================================
+function formatearUltimoLogin(isoString) {
+  if (!isoString) return "Nunca";
+  const fecha = new Date(isoString);
+  const ahora = new Date();
+  const diffMs = ahora - fecha;
+  const diffSeg = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSeg / 60);
+  const diffHoras = Math.floor(diffMin / 60);
+  const diffDias = Math.floor(diffHoras / 24);
+
+  if (diffSeg < 60) return "hace unos segundos";
+  if (diffMin < 60) return `hace ${diffMin} min`;
+  if (diffHoras < 24) return `hace ${diffHoras} h`;
+  if (diffDias < 30) return `hace ${diffDias} día${diffDias > 1 ? "s" : ""}`;
+  return fecha.toLocaleDateString("es-CO");
 }

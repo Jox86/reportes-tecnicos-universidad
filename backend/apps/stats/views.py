@@ -111,49 +111,104 @@ class PorTecnicoView(APIView):
         return Response(resultado)
 
 
+# apps/stats/views.py
+from django.contrib.auth.models import User
+from django.db.models import Avg, Count, DurationField, ExpressionWrapper, F, Q
+from django.utils import timezone
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from apps.core.models import Estado, Reporte
+
+
 class RankingTecnicosView(APIView):
     """
-    Ranking automático de técnicos ordenado por reportes resueltos
-    y tiempo promedio de resolución.
+    Ranking de técnicos.
+    - Incluye TODOS los usuarios con rol Técnico o Administrador.
+    - Ordena por:
+      1) Reportes resueltos (descendente)
+      2) Tiempo promedio de resolución (ascendente)
+      3) Último inicio de sesión (más reciente primero)
     """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        qs = _queryset_base(request).filter(estado__in=[Estado.RESUELTO, Estado.CERRADO])
+        # 1. Obtener TODOS los técnicos y admins
+        tecnicos = User.objects.filter(
+            groups__name__in=["Tecnico", "Administrador"],
+            is_active=True,
+        ).distinct()
 
-        datos = (
-            qs.exclude(tecnico_asignado__isnull=True)
-            .values(
-                "tecnico_asignado__id",
-                "tecnico_asignado__first_name",
-                "tecnico_asignado__last_name",
-                "tecnico_asignado__username",
+        # 2. Calcular reportes resueltos por cada técnico
+        resultado = []
+        for tecnico in tecnicos:
+            resueltos_qs = Reporte.objects.filter(
+                tecnico_asignado=tecnico,
+                estado__in=[Estado.RESUELTO, Estado.CERRADO],
             )
-            .annotate(
-                reportes_resueltos=Count("id"),
-                tiempo_promedio=Avg(
-                    ExpressionWrapper(
-                        F("fecha_resolucion") - F("fecha_creacion"),
-                        output_field=DurationField(),
-                    )
+            reportes_resueltos = resueltos_qs.count()
+
+            # Tiempo promedio de resolución
+            tiempo_promedio = resueltos_qs.filter(
+                fecha_resolucion__isnull=False
+            ).annotate(
+                duracion=ExpressionWrapper(
+                    F("fecha_resolucion") - F("fecha_creacion"),
+                    output_field=DurationField(),
+                )
+            ).aggregate(promedio=Avg("duracion"))["promedio"]
+
+            tiempo_horas = (
+                round(tiempo_promedio.total_seconds() / 3600, 1)
+                if tiempo_promedio else None
+            )
+
+            resultado.append({
+                "id": tecnico.id,
+                "nombre": tecnico.get_full_name() or tecnico.username,
+                "username": tecnico.username,
+                "email": tecnico.email,
+                "reportes_resueltos": reportes_resueltos,
+                "tiempo_promedio_horas": tiempo_horas,
+                "ultimo_login": tecnico.last_login.isoformat() if tecnico.last_login else None,
+                "es_admin": tecnico.is_superuser or tecnico.groups.filter(name="Administrador").exists(),
+            })
+
+        # 3. Ordenar:
+        #   - Primero por reportes_resueltos (desc)
+        #   - Luego por tiempo_promedio (asc, los None al final)
+        #   - Finalmente por last_login (desc, los más recientes primero)
+        def ordenar(t):
+            return (
+                -t["reportes_resueltos"],
+                t["tiempo_promedio_horas"] if t["tiempo_promedio_horas"] is not None else float("inf"),
+                # Para last_login: los que tienen fecha van primero (orden desc)
+                # y los que no tienen van al final
+                -(
+                    timezone.datetime.fromisoformat(t["ultimo_login"]).timestamp()
+                    if t["ultimo_login"] else 0
                 ),
             )
-            .order_by("-reportes_resueltos", "tiempo_promedio")[:10]
-        )
 
-        resultado = []
-        for i, d in enumerate(datos):
-            nombre = (
-                f"{d['tecnico_asignado__first_name']} {d['tecnico_asignado__last_name']}".strip()
-                or d["tecnico_asignado__username"]
-            )
-            tiempo_h = round(d["tiempo_promedio"].total_seconds() / 3600, 1) if d["tiempo_promedio"] else None
-            resultado.append({
-                "id": d["tecnico_asignado__id"],
-                "nombre": nombre,
-                "reportes_resueltos": d["reportes_resueltos"],
-                "tiempo_promedio_horas": tiempo_h,
-                "posicion": i + 1,
-            })
+        resultado.sort(key=ordenar)
+
+        # 4. Asignar posición
+        for i, t in enumerate(resultado):
+            t["posicion"] = i + 1
+            # Calcular estrellas (0-5)
+            r = t["reportes_resueltos"]
+            if r >= 20:
+                t["estrellas"] = 5
+            elif r >= 15:
+                t["estrellas"] = 4
+            elif r >= 10:
+                t["estrellas"] = 3
+            elif r >= 5:
+                t["estrellas"] = 2
+            elif r >= 1:
+                t["estrellas"] = 1
+            else:
+                t["estrellas"] = 0
 
         return Response(resultado)
