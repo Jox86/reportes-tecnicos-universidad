@@ -11,21 +11,6 @@ Validar que los permisos funcionan
 
 Tiempo: 15 min
 
-🟣 Opción B: Integrar subida de archivos adjuntos
-Por qué: El backend ya tiene el endpoint /api/reportes/{id}/subir-archivo/, pero el frontend no lo usa todavía.
-
-Qué incluye:
-
-Botón "Subir archivo" en ReporteDetail.jsx
-
-Mostrar lista de archivos adjuntos
-
-Permitir eliminar archivos
-
-Configurar almacenamiento de media en producción (Supabase Storage)
-
-Tiempo: 30 min
-
 🟢 Opción C: Configurar notificaciones por correo
 Por qué: El backend tiene notificaciones.py configurado, pero por defecto los correos se imprimen en consola. Si quieres que se envíen de verdad, hay que configurar SMTP.
 
@@ -87,3 +72,11 @@ Añadir robots.txt y security headers
 Documentar el sistema
 
 Tiempo: 1-2 horas
+
+
+🔴 Requisitos antes de despliegue final>
+politicas de privacidad
+declarar que se recopilan datos de usuarios y cuales (si se hace)
+mencionar que se usa IA
+mencionar a 3ros que usen la data (para analitica, pasarelas de pago, etcetera, especificar cuales)
+borrar data cuando el usuario lo pide o darle la opcion al usuario con un boton u opcion 

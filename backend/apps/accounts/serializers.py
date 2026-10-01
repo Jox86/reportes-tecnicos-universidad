@@ -6,7 +6,6 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from django.conf import settings
 
-
 def _rol_principal(roles, is_superuser):
     """Devuelve el rol de mayor jerarquía del usuario."""
     if is_superuser or settings.ROL_ADMIN in roles:

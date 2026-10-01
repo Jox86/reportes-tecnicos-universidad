@@ -204,6 +204,7 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Correo / notificaciones
 # ---------------------------------------------------------------------------
 EMAIL_HOST = config("EMAIL_HOST", default="")
@@ -216,7 +217,7 @@ if EMAIL_HOST:
 else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="reportes-ti@universidad.edu")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="ada250420@gmail.com")
 NOTIFICAR_NUEVOS_REPORTES_A = config("NOTIFICAR_NUEVOS_REPORTES_A", default="", cast=Csv())
 
 # ---------------------------------------------------------------------------
