@@ -2,10 +2,11 @@
 """
 Importa datos exportados con `sync_offline` evitando duplicados.
 
-Estrategia:
-- Catálogos (TipoArea, TipoTarea, Area, Ubicacion): si existe la PK o el nombre, saltar.
-- Reportes y relacionados: crear siempre con nueva PK.
-- Foreign keys: convertir IDs a instancias del modelo.
+Maneja:
+- Catálogos: si existe la PK o el nombre, saltar.
+- Reportes: crear siempre con nueva PK.
+- Foreign keys: convertir IDs numéricos a instancias.
+- Natural keys (listas como ["jfox6"]): resolver a instancias.
 """
 import json
 from django.core.management.base import BaseCommand
@@ -13,7 +14,6 @@ from django.apps import apps
 from django.db import transaction
 
 
-# Mapeo de campos FK: {"modelo": ["campo1", "campo2"]}
 CAMPOS_FK = {
     "core.area": ["tipo_area"],
     "core.ubicacion": ["area"],
@@ -33,6 +33,40 @@ class Command(BaseCommand):
         parser.add_argument("input_file", type=str)
         parser.add_argument("--dry-run", action="store_true")
 
+    def resolver_fk(self, Modelo, campo_fk, valor, mapa_reportes=None):
+        """
+        Convierte un valor de FK a una instancia del modelo.
+        Soporta:
+        - ID numérico: 5
+        - Natural key: ["jfox6"]
+        """
+        campo_meta = Modelo._meta.get_field(campo_fk)
+        ModeloDestino = campo_meta.related_model
+
+        # ¿Es una natural key? (lista o tupla)
+        if isinstance(valor, (list, tuple)):
+            try:
+                return ModeloDestino._default_manager.get_by_natural_key(*valor)
+            except ModeloDestino.DoesNotExist:
+                return None
+
+        # ¿Es un ID numérico?
+        if isinstance(valor, int):
+            # Para reportes, buscar en el mapa primero
+            if ModeloDestino.__name__ == "Reporte" and mapa_reportes:
+                nueva_pk = mapa_reportes.get(valor)
+                if nueva_pk:
+                    try:
+                        return ModeloDestino.objects.get(pk=nueva_pk)
+                    except ModeloDestino.DoesNotExist:
+                        pass
+            try:
+                return ModeloDestino.objects.get(pk=valor)
+            except ModeloDestino.DoesNotExist:
+                return None
+
+        return None
+
     def handle(self, *args, **options):
         input_file = options["input_file"]
         dry_run = options["dry_run"]
@@ -45,7 +79,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("Modo DRY-RUN"))
 
         creados = saltados = errores = 0
-        mapa_reportes = {}  # mapa de PKs viejas → nuevas de reportes
+        mapa_reportes = {}
 
         for item in datos:
             modelo_str = item["model"]
@@ -60,10 +94,9 @@ class Command(BaseCommand):
                 errores += 1
                 continue
 
-            # ¿Ya existe? (para catálogos)
+            # ¿Ya existe? (para catálogos, buscar por PK o por nombre)
             existente = None
             if modelo_str in self.CATALOGOS:
-                # Buscar por PK O por campo único (nombre)
                 existente = Modelo.objects.filter(pk=pk).first()
                 if not existente and "nombre" in campos:
                     existente = Modelo.objects.filter(nombre=campos["nombre"]).first()
@@ -72,9 +105,9 @@ class Command(BaseCommand):
                 saltados += 1
                 continue
 
+            # Para reportes: si ya existe por PK, saltar
             if modelo_str == "core.reporte":
-                existente_reporte = Modelo.objects.filter(pk=pk).first()
-                if existente_reporte:
+                if Modelo.objects.filter(pk=pk).exists():
                     saltados += 1
                     continue
 
@@ -85,41 +118,29 @@ class Command(BaseCommand):
                     continue
 
                 with transaction.atomic():
-                    # Convertir campos FK de IDs a instancias
+                    # Resolver TODAS las FKs (numéricas o natural keys)
                     for campo_fk in CAMPOS_FK.get(modelo_str, []):
-                        valor_id = campos.get(campo_fk)
-                        if valor_id is None:
+                        if campo_fk not in campos:
                             continue
 
-                        # Si el valor ya es un dict (natural_key), ignorar
-                        if isinstance(valor_id, (list, dict)):
+                        valor = campos[campo_fk]
+                        if valor is None:
                             continue
 
-                        # Determinar el modelo destino
-                        campo_meta = Modelo._meta.get_field(campo_fk)
-                        ModeloDestino = campo_meta.related_model
-
-                        # Para reportes, si es FK a Reporte, buscar en el mapa
-                        if modelo_str in ("core.equiporeporte", "core.historialestado") and campo_fk == "reporte":
-                            nueva_pk = mapa_reportes.get(valor_id)
-                            if nueva_pk:
-                                campos[campo_fk] = ModeloDestino.objects.get(pk=nueva_pk)
-                            else:
-                                # Buscar el reporte original
-                                campos[campo_fk] = ModeloDestino.objects.get(pk=valor_id)
+                        instancia = self.resolver_fk(Modelo, campo_fk, valor, mapa_reportes)
+                        if instancia is not None:
+                            campos[campo_fk] = instancia
                         else:
-                            try:
-                                campos[campo_fk] = ModeloDestino.objects.get(pk=valor_id)
-                            except ModeloDestino.DoesNotExist:
-                                self.stdout.write(
-                                    self.style.WARNING(
-                                        f"  ⚠ {modelo_str}: FK {campo_fk}={valor_id} no existe, ignorando"
-                                    )
-                                )
+                            # Si no se pudo resolver, dejar en None para FKs opcionales
+                            campo_meta = Modelo._meta.get_field(campo_fk)
+                            if campo_meta.null:
                                 campos[campo_fk] = None
+                            else:
+                                raise ValueError(
+                                    f"No se pudo resolver FK {campo_fk}={valor} en {modelo_str}"
+                                )
 
                     if modelo_str in self.CON_NUEVA_PK:
-                        # Crear sin la PK original
                         obj = Modelo(**campos)
                         obj.save()
                         if modelo_str == "core.reporte":
@@ -131,6 +152,7 @@ class Command(BaseCommand):
 
                 creados += 1
                 self.stdout.write(self.style.SUCCESS(f"  ✓ {modelo_str} pk={pk}"))
+
             except Exception as e:
                 errores += 1
                 self.stdout.write(self.style.ERROR(f"  ✗ {modelo_str} pk={pk}: {e}"))
