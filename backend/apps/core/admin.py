@@ -123,7 +123,7 @@ class HistorialEstadoAdmin(admin.ModelAdmin):
     search_fields = ("reporte__codigo", "comentario")
 
 
-from .notificaciones_models import Notificacion
+from .models import Notificacion
 
 
 @admin.register(Notificacion)
