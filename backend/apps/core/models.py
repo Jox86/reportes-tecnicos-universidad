@@ -219,3 +219,44 @@ class HistorialEstado(models.Model):
 
     def __str__(self):
         return f"{self.reporte.codigo}: {self.estado_anterior} -> {self.estado_nuevo}"
+
+
+# ---------------------------------------------------------------------------
+# Notificaciones internas
+# ---------------------------------------------------------------------------
+class Notificacion(models.Model):
+    TIPO_NUEVO_REPORTE = "nuevo_reporte"
+    TIPO_CAMBIO_ESTADO = "cambio_estado"
+    TIPO_ASIGNACION = "asignacion"
+
+    TIPOS = [
+        (TIPO_NUEVO_REPORTE, "Nuevo reporte"),
+        (TIPO_CAMBIO_ESTADO, "Cambio de estado"),
+        (TIPO_ASIGNACION, "Reporte asignado"),
+    ]
+
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="notificaciones",
+    )
+    tipo = models.CharField(max_length=20, choices=TIPOS)
+    titulo = models.CharField(max_length=200)
+    mensaje = models.TextField(blank=True)
+    reporte = models.ForeignKey(
+        "core.Reporte",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="notificaciones",
+    )
+    leida = models.BooleanField(default=False)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-fecha"]
+        verbose_name = "Notificación"
+        verbose_name_plural = "Notificaciones"
+
+    def __str__(self):
+        return f"{self.usuario.username}: {self.titulo}"

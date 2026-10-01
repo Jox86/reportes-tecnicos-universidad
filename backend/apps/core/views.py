@@ -296,7 +296,7 @@ class TecnicosViewSet(viewsets.ReadOnlyModelViewSet):
 # Notificaciones
 # ---------------------------------------------------------------------------
 from .serializers import NotificacionSerializer
-from .notificaciones_models import Notificacion
+from .models import Notificacion
 
 
 class NotificacionesViewSet(viewsets.ReadOnlyModelViewSet):

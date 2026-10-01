@@ -151,7 +151,7 @@ class ReporteListSerializer(serializers.ModelSerializer):
         return obj.tecnico_nombre
 
 
-from .notificaciones_models import Notificacion
+from .models import Notificacion
 
 
 class NotificacionSerializer(serializers.ModelSerializer):
