@@ -83,8 +83,8 @@ Fíjate que `pip install` termine sin errores: si un solo paquete falla, pip no 
 
 ### Datos de prueba (modo demo, sin AD)
 
-`python manage.py seed_demo` crea 3 tipos de área/áreas/ubicaciones y 45 reportes
-distribuidos en 6 meses. Contraseña para todos: `Demo2026!`
+`python manage.py seed_demo` crea usuarios, catálogos y 45 reportes de prueba; el comando está bloqueado cuando `DEBUG=False`.
+distribuidos en 6 meses. La contraseña demo se genera aleatoriamente en cada ejecución (o puede definirse mediante `DEMO_PASSWORD`).
 
 | Usuario         | Rol            |
 |-----------------|----------------|
