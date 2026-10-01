@@ -17,7 +17,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Cache-bust: 2026-10-01-0006  ← Cambiar número si es necesario
-RUN echo "Cache bust: 2026-10-01-0006"
+RUN echo "BUILD_ID=2026-10-01-0010"
 COPY . .
 
 EXPOSE $PORT
