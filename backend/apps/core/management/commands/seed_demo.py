@@ -1,9 +1,11 @@
+import os
 import random
+import secrets
 from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth.models import Group, User
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
 from apps.core.models import (
@@ -17,7 +19,7 @@ from apps.core.models import (
     Ubicacion,
 )
 
-PASSWORD = "Demo2026!"
+PASSWORD = os.environ.get("DEMO_PASSWORD") or secrets.token_urlsafe(18)
 
 USUARIOS = [
     ("admin_demo", "Ana", "Administradora", settings.ROL_ADMIN),
@@ -71,6 +73,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        if not settings.DEBUG:
+            raise CommandError("seed_demo está bloqueado cuando DEBUG=False. Úsalo solo en desarrollo.")
         random.seed(42)
 
         for nombre in settings.ROLES_DISPONIBLES:

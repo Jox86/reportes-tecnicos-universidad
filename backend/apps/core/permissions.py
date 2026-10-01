@@ -1,4 +1,3 @@
-# apps/core/permissions.py
 from django.conf import settings
 from django.db.models import Q
 from rest_framework import permissions
@@ -18,13 +17,16 @@ def es_auditor(user):
     return settings.ROL_AUDITOR in roles_de(user)
 
 
+def es_director(user):
+    return settings.ROL_DIRECTOR in roles_de(user)
+
+
 def es_tecnico(user):
     return settings.ROL_TECNICO in roles_de(user)
 
 
 def solo_lectura(user):
-    """Auditor solo consulta y exporta, no crea ni edita reportes."""
-    return es_auditor(user) and not es_admin(user)
+    return (es_auditor(user) or es_director(user)) and not es_admin(user)
 
 
 class EsAdministrador(permissions.BasePermission):
@@ -33,7 +35,7 @@ class EsAdministrador(permissions.BasePermission):
 
 
 class CatalogoPermission(permissions.BasePermission):
-    """Áreas, tipos de área y ubicaciones: cualquier rol autenticado lee; solo Admin escribe."""
+    """Cualquier rol autenticado consulta; solo Administrador modifica catálogos."""
 
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
@@ -44,13 +46,6 @@ class CatalogoPermission(permissions.BasePermission):
 
 
 class ReportePermission(permissions.BasePermission):
-    """
-    - Administrador: acceso total.
-    - Auditor: solo lectura (incluye exportación) sobre todos los reportes.
-    - Técnico: puede crear reportes y editar/actualizar solo los suyos
-      (creados por él o asignados a él).
-    """
-
     def has_permission(self, request, view):
         user = request.user
         if not user or not user.is_authenticated:
@@ -61,7 +56,6 @@ class ReportePermission(permissions.BasePermission):
             return True
         if solo_lectura(user):
             return False
-        # POST (crear) y demás métodos de escritura: solo técnicos
         return es_tecnico(user)
 
     def has_object_permission(self, request, view, obj):
