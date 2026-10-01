@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import api from "../api/client";
 import { BarChartReportes, LineChartReportes, PieChartModerno } from "../components/charts/Charts";
 import { FileSpreadsheet, FileDown } from "lucide-react";
-import * as XLSX from "xlsx";
+import * as XLSX from 'xlsx-js-style';
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 

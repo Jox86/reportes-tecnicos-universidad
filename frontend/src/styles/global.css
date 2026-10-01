@@ -1497,8 +1497,8 @@ body {
 }
 
 .btn-salir:hover {
-  background: #dc2626;
-  color: #fff;
+  background: #d3c275;
+  color: #170101;
   border-color: #dc2626;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);

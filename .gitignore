@@ -1,0 +1,42 @@
+@'
+# =========================================
+# Python / Django
+# =========================================
+__pycache__/
+*.py[cod]
+*.log
+db.sqlite3
+.env
+.venv/
+venv/
+staticfiles/
+media/
+
+# =========================================
+# Node / React / Vite
+# =========================================
+node_modules/
+dist/
+build/
+.vite/
+.env
+.env.local
+
+# =========================================
+# Archivos temporales / locales
+# =========================================
+backend/offline_sync.json
+backend/db.sqlite3.backup
+backend/apps/core/management/commands/offline_sync.json
+backend/sync_data/
+*.backup
+*.zip
+
+# =========================================
+# IDE / Sistema
+# =========================================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+'@ | Set-Content -Path .gitignore -Encoding UTF8

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../hooks/useTheme";
+import Notificaciones from "./Notificaciones";
 import { Sun, Moon } from "lucide-react";
 import {
   LayoutDashboard,
@@ -74,8 +75,19 @@ export default function Layout() {
           ))}
         </nav>
 
-        {/* Usuario + logout */}
+        {/* Usuario + notificaciones + tema + logout */}
         <div className="app-header__usuario">
+          <Notificaciones />
+
+          <button
+            className="btn-tema"
+            onClick={toggleTema}
+            title={tema === "light" ? "Modo oscuro" : "Modo claro"}
+            aria-label="Cambiar tema"
+          >
+            {tema === "light" ? <Moon size={18} /> : <Sun size={18} />}
+          </button>
+
           <div className="app-header__usuario-info">
             <strong>{usuario?.nombre || "Usuario"}</strong>
             <small className="app-header__rol">
@@ -83,13 +95,7 @@ export default function Layout() {
               {usuario?.rol_principal || usuario?.roles?.join(", ") || "Sin rol"}
             </small>
           </div>
-          <button
-            className="btn-tema"
-            onClick={toggleTema}
-            title={tema === "light" ? "Modo oscuro" : "Modo claro"}
-          >
-            {tema === "light" ? <Moon size={18} /> : <Sun size={18} />}
-          </button>
+
           <button
             className="btn-salir"
             onClick={logout}
@@ -97,7 +103,7 @@ export default function Layout() {
             aria-label="Cerrar sesión"
           >
             <LogOut size={16} />
-            <span className="btn-salir__texto">Salir</span>
+            <span className="btn-salir__texto"></span>
           </button>
         </div>
 
@@ -119,7 +125,9 @@ export default function Layout() {
             <div className="app-menu-movil__header">
               <span className="app-menu-movil__usuario">
                 <strong>{usuario?.nombre || "Usuario"}</strong>
-                <small>{usuario?.rol_principal || usuario?.roles?.join(", ") || "Sin rol"}</small>
+                <small>
+                  {usuario?.rol_principal || usuario?.roles?.join(", ") || "Sin rol"}
+                </small>
               </span>
             </div>
 
@@ -149,7 +157,11 @@ export default function Layout() {
               )}
             </div>
 
-            <button className="app-menu-movil__salir" onClick={logout}>
+            <button
+              className="app-menu-movil__salir"
+              onClick={logout}
+              aria-label="Cerrar sesión"
+            >
               <LogOut size={18} />
               <span>Cerrar sesión</span>
             </button>
