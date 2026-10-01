@@ -24,6 +24,20 @@ def _ajustar_ancho(ws):
         ws.column_dimensions[get_column_letter(column_cells[0].column)].width = min(length + 4, 40)
 
 
+def _excel_safe(value):
+    """Evita Excel Formula Injection al exportar texto controlado por usuarios."""
+    if not isinstance(value, str):
+        return value
+    value = value.replace("\x00", "")
+    if value.startswith(("=", "+", "-", "@")):
+        return "'" + value
+    return value
+
+
+def _safe_row(values):
+    return [_excel_safe(value) for value in values]
+
+
 def generar_excel_reportes(queryset):
     """Exporta la lista de reportes a Excel."""
     wb = openpyxl.Workbook()
@@ -39,7 +53,7 @@ def generar_excel_reportes(queryset):
     _escribir_encabezados(ws, columnas)
 
     for r in queryset:
-        ws.append([
+        ws.append(_safe_row([
             r.codigo,
             r.fecha_creacion.strftime("%Y-%m-%d %H:%M") if r.fecha_creacion else "",
             r.tipo_tarea.nombre if r.tipo_tarea else "",
@@ -55,7 +69,7 @@ def generar_excel_reportes(queryset):
             r.tiempo_resolucion_horas or "",
             r.descripcion or "",
             r.solucion or "",
-        ])
+        ]))
 
     _ajustar_ancho(ws)
 
@@ -95,9 +109,8 @@ def generar_excel_reporte_individual(reporte):
         ("Solución", reporte.solucion or ""),
     ]
     for fila in filas:
-        ws.append(fila)
+        ws.append(_safe_row(fila))
 
-    # Equipos
     if reporte.equipos.exists():
         ws.append([])
         ws.append(["Equipos", ""])
@@ -106,7 +119,7 @@ def generar_excel_reporte_individual(reporte):
             cell.font = HEADER_FONT
         ws.append(["Código", "Marca", "Modelo", "Serie"])
         for eq in reporte.equipos.all():
-            ws.append([eq.codigo_activo, eq.marca, eq.modelo, eq.serie])
+            ws.append(_safe_row([eq.codigo_activo, eq.marca, eq.modelo, eq.serie]))
 
     _ajustar_ancho(ws)
 
