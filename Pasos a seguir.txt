@@ -74,9 +74,205 @@ Documentar el sistema
 Tiempo: 1-2 horas
 
 
-🔴 Requisitos antes de despliegue final>
-politicas de privacidad
-declarar que se recopilan datos de usuarios y cuales (si se hace)
-mencionar que se usa IA
-mencionar a 3ros que usen la data (para analitica, pasarelas de pago, etcetera, especificar cuales)
-borrar data cuando el usuario lo pide o darle la opcion al usuario con un boton u opcion 
+
+
+
+
+
+#	Tarea	Prioridad	Tiempo estimado
+1	Políticas de privacidad + Términos	🔴 Crítica (legal)	1-2 horas
+2	Derecho al olvido (botón de eliminar cuenta)	🔴 Crítica (GDPR/Ley 1581 Colombia)	3-4 horas
+3	Documentación	🟠 Alta	1 hora
+4	Correo SMTP con Brevo	🟡 Media	30 min
+5	Dominio personalizado	🟡 Media	30 min
+6	Otras funcionalidades nuevas	🟢 Baja	Variable
+📋 Detalle de cada tarea
+🔴 1. Políticas de privacidad + Términos y Condiciones
+¿Es necesario? SÍ, es obligatorio si vas a recolectar datos personales de usuarios. En Colombia, la Ley 1581 de 2012 (Protección de Datos Personales) exige:
+
+Aviso de privacidad visible antes de recolectar datos.
+
+Política de tratamiento de datos accesible desde la app.
+
+Consentimiento explícito del usuario.
+
+Informar qué datos se recopilan, para qué, y con quién se comparten.
+
+Mencionar el uso de IA si aplica (aunque en tu caso no usas IA directamente, sí usas Supabase/Railway que son terceros).
+
+Qué incluir:
+
+Política de Privacidad (/privacidad):
+
+Qué datos recopila el sistema: usuario, correo, cargo, área, reportes creados.
+
+Para qué se usan: gestión de reportes técnicos.
+
+Dónde se almacenan: Supabase (PostgreSQL).
+
+Quién los procesa: Railway (hosting), Supabase (base de datos), Netlify (frontend), Brevo (correo, si se activa).
+
+Derechos del usuario: acceso, rectificación, cancelación, oposición.
+
+Cómo ejercerlos: correo de contacto + botón de eliminar cuenta.
+
+Tiempo de retención: mientras la cuenta esté activa + X meses.
+
+Uso de IA: declarar si se usa para análisis de texto, generación de resúmenes, etc.
+
+Términos y Condiciones (/terminos):
+
+Uso aceptable del sistema.
+
+Responsabilidades del usuario.
+
+Limitación de responsabilidad.
+
+Aviso de cookies (si usas cookies, como JWT en localStorage):
+
+Declarar el uso de localStorage para tokens JWT.
+
+Explicar que no se usan cookies de tracking.
+
+Cómo implementarlo:
+
+2 páginas nuevas en el frontend (/privacidad, /terminos).
+
+1 checkbox de aceptación en el registro/login (con link a las políticas).
+
+Footer con links a las políticas en todas las páginas.
+
+Tiempo: 1-2 horas.
+
+🔴 2. Derecho al olvido (eliminar cuenta)
+¿Es necesario? SÍ, es obligatorio en la Ley 1581 de 2012 (derecho de cancelación). El usuario debe poder solicitar la eliminación de sus datos.
+
+Qué incluye:
+
+Botón "Eliminar mi cuenta" en el perfil del usuario.
+
+Confirmación doble (modal con advertencia).
+
+Endpoint en el backend que:
+
+Anonimiza los reportes del usuario (los reasigna a "Usuario eliminado").
+
+Elimina los datos personales (correo, cargo).
+
+Desactiva la cuenta (no borra el ID, para no romper FKs).
+
+Registra la acción en logs para auditoría.
+
+Alternativa: Eliminación completa (borrar de la BD). Pero es complicado por las FKs. La anonimización es más segura.
+
+Cómo implementarlo:
+
+Endpoint DELETE /api/auth/me/ (backend).
+
+Modal de confirmación en el perfil (frontend).
+
+Log del evento.
+
+Tiempo: 3-4 horas.
+
+🟠 3. Documentación
+¿Es necesario? Muy recomendable para un proyecto profesional. Ayuda a:
+
+Nuevos desarrolladores que se unan al proyecto.
+
+Personal de TI que administre el sistema.
+
+Auditoría y mantenimiento.
+
+Qué incluir:
+
+README.md en la raíz del repo con:
+
+Descripción del proyecto.
+
+Stack tecnológico.
+
+Instrucciones de instalación (backend + frontend).
+
+Variables de entorno necesarias.
+
+Cómo desplegar (Railway, Supabase, Netlify).
+
+Estructura del proyecto.
+
+Manual de usuario (PDF o HTML):
+
+Cómo iniciar sesión.
+
+Cómo crear un reporte.
+
+Cómo cambiar estados.
+
+Cómo usar el ranking.
+
+Cómo exportar.
+
+Manual de administrador:
+
+Cómo gestionar usuarios.
+
+Cómo gestionar catálogos (áreas, tipos).
+
+Cómo ver logs.
+
+Cómo hacer respaldos.
+
+Tiempo: 1 hora (solo README; manuales completos tardan más).
+
+🟡 4. Correo SMTP con Brevo
+¿Es necesario? Recomendable si quieres enviar notificaciones por correo. No es bloqueante porque las notificaciones internas (campanita) ya funcionan.
+
+Qué incluye:
+
+Cuenta en Brevo (gratis).
+
+Variables en Railway.
+
+Probar envío real.
+
+Tiempo: 30 min.
+
+🟡 5. Dominio personalizado
+¿Es necesario? Solo si quieres una URL profesional (reportes.universidad.edu) en lugar de reportes-tecnicos-universidad.netlify.app.
+
+Qué incluye:
+
+Comprar el dominio (o usar uno institucional).
+
+Configurar DNS en Netlify (frontend) y Railway (backend).
+
+Actualizar CORS/CSRF con el nuevo dominio.
+
+Tiempo: 30 min (si ya tienes el dominio).
+
+🟢 6. Otras funcionalidades nuevas
+Según lo que quieras priorizar. Ideas:
+
+Reportes programados (cron job que envía un resumen semanal).
+
+Adjuntos en reportes (subida de imágenes/PDFs).
+
+Comentarios en reportes.
+
+Búsqueda avanzada con filtros combinados.
+
+Estadísticas más profundas (por técnico, por área, tendencias).
+
+Multi-idioma (español/inglés).
+
+App móvil (React Native).
+
+Notificaciones push (Firebase).
+
+Integración con LDAP institucional (cuando tengas las credenciales).
+
+Reportes con firma digital (PDF firmado con certificado).
+
+Exportación a Word mejorada.
+
+Tiempo: Variable según lo que elijas.

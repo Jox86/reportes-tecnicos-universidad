@@ -4,6 +4,8 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../hooks/useTheme";
 import Notificaciones from "./Notificaciones";
+import LegalFooter from "./LegalFooter";
+import ModalEliminarCuenta from "./ModalEliminarCuenta";
 import { Sun, Moon } from "lucide-react";
 import {
   LayoutDashboard,
@@ -22,6 +24,7 @@ export default function Layout() {
   const location = useLocation();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const { tema, toggleTema } = useTheme();
+  const [modalEliminar, setModalEliminar] = useState(false);
 
   const esAdmin = usuario?.is_superuser || usuario?.roles?.includes("Administrador");
   const puedeGestionar = esAdmin || usuario?.roles?.includes("Tecnico");
@@ -103,8 +106,16 @@ export default function Layout() {
             aria-label="Cerrar sesión"
           >
             <LogOut size={16} />
-            <span className="btn-salir__texto"></span>
+            <span className="btn-salir__texto">Salir</span>
           </button>
+
+          <button
+            className="btn btn--peligro"
+            onClick={() => setModalEliminar(true)}
+          >
+            <Trash2 size={14} /> Eliminar mi cuenta
+          </button>
+
         </div>
 
         {/* Hamburguesa (solo visible en móvil/tablet) */}
@@ -173,6 +184,14 @@ export default function Layout() {
       <main className="app-contenido">
         <Outlet />
       </main>
+
+      {/* ============ FOOTER LEGAL ============ */}
+      <LegalFooter />
+
+      <ModalEliminarCuenta
+        abierto={modalEliminar}
+        onClose={() => setModalEliminar(false)}
+      />
     </div>
   );
 }

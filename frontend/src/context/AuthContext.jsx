@@ -33,8 +33,14 @@ export function AuthProvider({ children }) {
     setUsuario(null);
   }
 
+  async function eliminarCuenta() {
+    await api.delete("/auth/me/eliminar/");
+    clearTokens();
+    setUsuario(null);
+  }
+
   return (
-    <AuthContext.Provider value={{ usuario, cargando, login, logout }}>
+    <AuthContext.Provider value={{ usuario, cargando, login, logout, eliminarCuenta }}>
       {children}
     </AuthContext.Provider>
   );

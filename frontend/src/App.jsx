@@ -7,7 +7,9 @@ import { useAuth } from "./context/AuthContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Estadisticas from "./pages/Estadisticas";
-import Ranking from "./pages/Ranking"; // ← NUEVA
+import Ranking from "./pages/Ranking";
+import Privacidad from "./pages/Privacidad";
+import Terminos from "./pages/Terminos";
 import ReportesList from "./pages/reportes/ReportesList";
 import ReporteDetail from "./pages/reportes/ReporteDetail";
 import ReporteForm from "./pages/reportes/ReporteForm";
@@ -29,6 +31,10 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={usuario ? <Navigate to="/" replace /> : <Login />} />
+
+      {/* Rutas públicas (sin login) */}
+      <Route path="/privacidad" element={<Privacidad />} />
+      <Route path="/terminos" element={<Terminos />} />
 
       <Route
         path="/"
@@ -58,7 +64,7 @@ export default function App() {
         />
         <Route path="reportes/:id" element={<ReporteDetail />} />
         <Route path="estadisticas" element={<Estadisticas />} />
-        <Route path="ranking" element={<Ranking />} /> {/* ← NUEVA */}
+        <Route path="ranking" element={<Ranking />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
