@@ -7,6 +7,17 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
+function excelSafe(value) {
+  if (typeof value !== "string") return value;
+  return /^[=+\\-@]/.test(value) ? "'" + value : value;
+}
+
+function sanitizeRows(rows) {
+  return rows.map((row) =>
+    Object.fromEntries(Object.entries(row).map(([key, value]) => [key, excelSafe(value)]))
+  );
+}
+
 export default function Estadisticas() {
   const [filtros, setFiltros] = useState({ desde: "", hasta: "" });
   const [resumen, setResumen] = useState(null);
@@ -46,11 +57,11 @@ export default function Estadisticas() {
 
   function exportarExcel() {
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([resumen]), "Resumen");
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(porMes), "Por Mes");
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(porTipo), "Por Tipo");
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(porArea), "Por Área");
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(porTecnico), "Por Técnico");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([Object.fromEntries(Object.entries(resumen).map(([key, value]) => [key, excelSafe(value)]))]), "Resumen");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sanitizeRows(porMes)), "Por Mes");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sanitizeRows(porTipo)), "Por Tipo");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sanitizeRows(porArea)), "Por Área");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sanitizeRows(porTecnico)), "Por Técnico");
     XLSX.writeFile(wb, `Estadisticas_${new Date().toISOString().split("T")[0]}.xlsx`);
   }
 
