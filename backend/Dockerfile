@@ -17,9 +17,13 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
+    
 # Copiar el archivo de requerimientos e instalarlos
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Invalida la caché del COPY (cambiar el timestamp cuando se necesite)
+# Cache-bust: 2026-10-01-0001   ← CAMBIA ESTO cuando quieras forzar rebuild
 
 # Copiar el resto del código del backend
 COPY . .
